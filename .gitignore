@@ -6,6 +6,9 @@
 # 本地运行时数据
 postgres_data/
 .obsidian/
+node_modules/
+package-lock.json
+package.json
 
 # 本地工具配置目录（根目录与 AI_agent 内）
 .zcode/
@@ -17,12 +20,6 @@ AI_agent/.opencode/
 AI_agent/.vscode/
 AI_agent/.workbuddy-ai/
 AI_agent/.zcode/
-AI_agent/node_modules/
-AI_agent/package-lock.json
-AI_agent/package.json
 
 # 本地工具配置目录（根目录与 TypeScript 内）
 TypeScript/.zcode/
-TypeScript/node_modules/
-TypeScript/package-lock.json
-TypeScript/package.json
