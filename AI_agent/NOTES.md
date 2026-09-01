@@ -14,12 +14,13 @@
 - `00_学习路线图.md`：4–6 个月长期完整路线（等级 1–5）
 - `00_20小时速通计划.md`：10 次 × 2 小时速通计划（本次交付），与长期路线共存
 - `01_API基础/` `02_ToolUse/` `03_RAG/` `04_多步Agent/` `05_毕业项目/`：练习代码目录（速通计划复用同一套目录）
+- `lessons/`（课件）、`reference/`（速查表）、`learning-records/`（学习档案）：课程素材
 - `RESOURCES.md`：精选资源；`MISSION.md`：学习使命
 
 ## 待确认
 
 - MISSION.md 为推断版，等用户修正
-- **第 3 课起是否延续 TypeScript（待用户确认）**：第 1、2 课均已按用户要求改为 TS；速通计划"前置要求"（Python 基础）与 MISSION 尚未改写，等用户对全课程语言表态后一起动。用户的 Python 练习文件（ex1/ex2/ex2.ipynb）保留未删
+- 全课程语言已实际转向 TypeScript（第 1、2 课均为 TS，用户另有并行 TS 课程）；速通计划"前置要求"（Python 基础）与 MISSION 的措辞待下次修改时一并改写。用户的 Python 练习文件（ex1/ex2/ex2.ipynb）保留未删
 - 用户可用的 MCP 客户端未确认（第 9 次课需要，届时确认装的是 Claude Desktop 还是其他）
 
 ## 用户环境（2026-08-28 检查）
@@ -27,7 +28,7 @@
 - anaconda Python 3.13.9（/Users/clock1/tools/anaconda3/bin/python3）
 - requests 2.32.5 已装；openai SDK 未装
 - **Node 22.22.2 + npm 10.9.7 已确认（2026-08-30）**；bun/deno 未装。npm 项目在**工作区根目录**（package.json 名 `ai_agent`，`type: module`；2026-08-31 核实）：tsx ^4.23、@types/node、typescript ^7.0 已装，另有 dotenv 与 openai ^7.8 备用（openai SDK 已装，但课程在 function calling 课前仍刻意不用）。跑法 `npx tsx 文件名.ts`（在 01_API基础/ 里跑，npx 自动向上找根目录 node_modules）
-- API 供应商已确认（2026-08-30）：**DeepSeek**，练手模型 `deepseek-v4-flash`；第 1 课课件的三家通用写法保留，第 2 课起课件以 DeepSeek 为主线
+- API 供应商：用户第 1 课实际用**智谱 glm-5.3-flash**（2026-09-02 从代码观察到，早先记录的 DeepSeek 有误）；第 2 课课件以 DeepSeek 为主线，开课前向用户确认主线
 
 ## 教学进度
 
@@ -40,3 +41,4 @@
 - 2026-08-30：用户问 TS 如何像 Python 一样 debug + 控制台执行函数。已实测（Node 22 + tsx）：tsx REPL 支持 TS 语法/跨行变量/顶层 await；`--inspect-brk` 可转发；macOS `/private` 符号链接导致 `import.meta.filename === process.argv[1]` 失效，需 realpathSync 比较。整理成 `reference/ts-debug-repl.md` 速查表
 - 2026-08-31：按用户要求把第 2 课也改为 TypeScript：重写 `lessons/0002-structured-output.md` 全部代码（fetch/tsx，约定对齐第 1 课 TS 版：main() 包裹、AbortSignal.timeout、type Role/interface Message、答案册链接模式），`0002-answers.md` 同步措辞，速查表 §7 去 Python 化。要点：chat() 骨架加 `"thinking": {"type": "disabled"}` + `temperature: 0`（依据 §3.1——DeepSeek V4 默认开思考、思考模式下 temperature 失效）；§1 新增"TS 类型管不到运行时"避坑（贴合本课主题）；热身改为"把用户已完成的 Python ex1 翻译成 TS"。发现用户已完成第 1 课 Python 练习（ex1/ex2/ex2.ipynb，08-30 晚），checkbox/learning-record/判卷仍待用户回报。顺手修正两处过时表述：第 1 课 §0.1（原 npm init 指引——目录名报 Invalid name 且项目已不在那里）、ts-debug-repl §1（项目实际在根目录）。第 2 课 TS 骨架已经 tsx 烟雾测试（转译执行、parseReview 剥围栏/BadJSON、中文键 interface 均通过）
 - 2026-08-31：按用户要求把第 1、2 课答案册内容并回课件，改用 Obsidian 折叠 callout（用户确认现在主要在 Obsidian 里看课件）：§1.1 对照答案 → `[!success]-`、任务提示 → `[!tip]-`、自测 Q1–Q5 → `[!question]-`，第 1 课 7 处、第 2 课 6 处；答案册 `0001-answers.md`、`0002-answers.md` 已 `git rm`；§4 复盘措辞同步（"跳到答案册"→"点开折叠"）。上条记录里的"答案册链接模式"自此作废，后续课件直接用折叠 callout 内嵌
+- 2026-09-02：第 1 课完成（TypeScript 版）。用户自查清单已自己勾选（带 ✅ 日期）；我勾了计划第 1 课三 checkbox、写了 learning-record `learning-records/0001-llm-api-stateless-messages.md`。⚠️ 安全事件：用户曾在 ex1 硬编码智谱 API key 并推送到**公开** GitHub 仓库（Rager-man/Learn_center，commit 934515d）——ex1/ex2 工作树已改回 process.env 写法（未提交），已提醒 revoke key + 查账单；git 历史清理待用户决定。复盘三题口述待判卷
