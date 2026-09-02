@@ -1,4 +1,4 @@
-# 第 1 课 · LLM API 的本质：无状态与对话历史
+# 第 1 课 · LLM API 的本质——无状态与对话历史
 
 > **AI Agent 开发 · 20 小时速通 · 1 / 10**
 > 节奏：**30 分钟学**（§0–§2）→ **80 分钟练**（§3，代码放 `01_API基础/`）→ **10 分钟复盘**（§4）。
@@ -54,6 +54,19 @@ npx tsx --version
 ```
 
 以后跑练习都是 `npx tsx 文件名.ts`。`@types/node` 是给编辑器的类型提示（`process`、`fetch`、`readline` 的补全都靠它）；`tsx` 本身不编译、不检查类型，只管跑。
+
+开工前跑一次安检（本课起每次开工的第一件事，沉默即绿）：
+
+```bash
+npx tsc --noEmit   # 在 AI_agent/ 目录里跑
+```
+
+今天是绿的：本课只有你新写的两个练习文件，出生即绿——之后哪天它红了，红的就是你刚写的东西，修到沉默为止。
+
+本课练习文件（都在 `01_API基础/`，任务说明见 §3）：
+
+- `ex1_minimal_call.ts` —— 任务 1：最小调用（起步骨架在 §3，你来新建）
+- `ex2_chat.ts` —— 任务 2：多轮聊天机器人（骨架片段在 §3，你来新建——多轮历史的维护正是练习本体，不预建）
 
 > 💡 **课前读什么**
 > 按计划，学前阅读是你所用平台的 **chat completions 文档**，重点看 `messages` 参数结构。入口：[智谱 HTTP 调用指南](https://docs.bigmodel.cn/cn/guide/develop/http/introduction) · [DeepSeek 文档](https://api-docs.deepseek.com/) · [Qwen OpenAI 兼容说明](https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope) · [OpenAI API Reference](https://platform.openai.com/docs/api-reference/chat)。
@@ -229,6 +242,9 @@ main();
 3. 实验 A：在最前面加一条 `system` 消息（内容：`你是一个只用文言文回答的助手`），再问同一个问题，对比输出变化。
 4. 实验 B：请求体里加 `"max_tokens": 10`，重跑，观察 `finish_reason` 变成什么、`content` 是不是被拦腰截断。
 
+> ✅ **检查点（比写完代码更重要）**
+> 把响应合上，**口述**五个字段的作用：`id` / `model` / `choices[0].message` / `finish_reason` / `usage` 三件套。哪个口述不出来，就回去再看它一眼——第 2 课开始这些字段天天见。
+
 ### 任务 2 · 命令行多轮聊天机器人（30 分钟）
 
 新建 `ex2_chat.ts`。目标：一个支持多轮记忆的命令行聊天机器人——**记忆由你的代码维护**。
@@ -275,6 +291,9 @@ main();
 1. 在 ex2 里每轮打印 `usage` 三个数。
 2. 连聊 5 轮以上，盯着 `prompt_tokens`：它是不是一轮比一轮大？增长量里包含什么？
 3. 心算一题：假设每轮新增约 300 token，到第 20 轮时，单次请求的输入大约多大？这次对话你一共为"重发历史"付了多少 token？
+
+> ✅ **检查点（比写完代码更重要）**
+> 心算题答得上来，且能指着 `prompt_tokens` 的增长说出"增长量里包含什么"——计费直觉建起来了，这比代码本身值钱。
 
 ### §3.4 自查清单
 

@@ -1,46 +1,100 @@
-# 教学备忘（AI 导师专用）
+# AI Agent 开发课程 · 导师备忘
 
-## 用户偏好
+> 给 AI 导师的工作记忆：记录学员进度、踩过的坑、已纠正的观念、课件版式规范。每次课后更新，新课开工前先读这份。
 
-- 教学语言：中文；技术术语保留英文（function calling、RAG、MCP、chunk 等）
-- 文档格式：markdown，与现有 `00_学习路线图.md` 风格一致（直接、重避坑、每次课有一条"核心认知"）
-- **课件一律 markdown**（2026-08-28 用户明确要求：把已生成的 HTML 课件改成 markdown；此后不再产出 HTML/JS 课件）
-- **"卡住再看"的内容用 Obsidian 折叠 callout 内嵌课件**（2026-08-31 更新，取代原"独立答案册"模式）：提示、对照答案、自测答案以 `> [!success]-` / `> [!tip]-` / `> [!question]-` 折叠块直接放课件内，默认收起、点击展开（用户已确认现在主要在 Obsidian 里看课件）。注意环境差异：`<details>` 在用户旧查看器（浏览器 md 预览）里无法折叠（2026-08-30 教训）；折叠 callout 在 GitHub / VS Code 预览里则退化为普通引用块（内容仍完整，只是不折叠）。不再维护独立 `000N-answers.md`
-- 学习风格：重实操——每次 80 分钟写代码，学前阅读只给最小必读
-- 复盘方式：合上代码凭记忆口述复盘问题，再验证（检索练习，非重读）
+## 学员档案
+
+- 背景：Python 基础，agent 零基础；TypeScript 并行学习中（2026-08-30 起本课程课件与练习全面转 TS）。中文交流，技术术语保留英文（function calling、RAG、MCP、chunk 等）。Obsidian 用户。
+- 环境：macOS，Node 22.22.2 / npm 10.9.7。npm 项目在**仓库根** `/Users/clock1/Project/Learn_center`（tsx ^4.23、@types/node、typescript ^7.0 已装；dotenv 与 openai ^7.8 装了备用——function calling 课前刻意不用，坚持 fetch 裸调）。AI_agent 目录自带 tsconfig（strict / noEmit / types:["node"]），安检 `npx tsc --noEmit`。跑法 `npx tsx 文件名.ts`。
+- API 供应商：**智谱 GLM `glm-5.3-flash`**（2026-09-02 用户拍板主线；1M 上下文；**强制思考不可关**——文档明示仅支持 enabled，响应带 `reasoning_content`，思考部分照常计费）。密钥走环境变量 `LLM_BASE_URL` / `LLM_MODEL` / `LLM_API_KEY`（shell export，无 .env 文件）。
+- 教学偏好：
+  - 课件一律 markdown（2026-08-28 用户明确要求，此后不再产出 HTML/JS 课件）
+  - "卡住再看"的内容用 **Obsidian 折叠 callout 内嵌课件**（2026-08-31 定版）：提示 / 对照答案 / 自测答案以 `> [!tip]-` / `> [!success]-` / `> [!question]-` 折叠块放在课件内，默认收起。环境教训：`<details>` 在用户旧查看器（浏览器 md 预览）无法折叠（2026-08-30）；折叠 callout 在 GitHub / VS Code 预览退化为普通引用块（内容完整，只是不折叠）
+  - 学习风格重实操：每次 80 分钟写代码，学前阅读只给最小必读
+  - 复盘方式：合上代码凭记忆口述复盘问题，再验证（检索练习，非重读）
+  - 卡住 20 分钟就求助：期望 / 实际 / 完整报错 / 相关代码，四样贴出来
+
+## 进度总览
+
+- **第 1 课 ✓ 结业（2026-09-02）**：三任务全过（ex1 逐字段过响应、ex2 多轮机器人、任务 3 token 观察在 ex2 内完成），复盘三题通过（Q1 于同日重述通过）。学员先于 2026-08-30 晚完成过 Python 版练习（已归档 `01_API基础/archive/`），TS 版重做后结业。
+- **第 2 课 ▶ 已开工（2026-09-02）**：结构化输出（智谱主线）。ex3_reviews.ts 进行中：任务 1 已完成——招式一二合体（Schema 进 prompt + `response_format` + `temperature: 0`），压测评论 9 条（含学员自加 3 条刁钻题：乱码混合、多重负面、正负并存）；**任务 2 未动**——parseReview（剥围栏 / 截花括号 / BadJSON）、原样重试、回传修复均未写，当前裸 `JSON.parse` 压测遇坏输出会裸崩（课件设计如此：先亲眼看它崩）。判卷要点：自查清单 6 项全勾 + 压测三件套零裸崩才结业；复盘题 1 要求"真见过"的失败清单（验收时对号 §2.3 失败模式表，顺带点破学员自加 3 条各对应哪一行）。伏笔埋点：`Review` 类型合同是单方面的（判卷题"为什么标了类型运行时校验照样不能省"）；回传修复的 messages 结构 = 第 3 课 tool_calls 结果回传的预演。
+- **第 3 课 未开工**：Function Calling。测试集 `02_ToolUse/ex4_questions.py` 已备（12 题，每题 expect + note，还是 Python——开课时按"课件版式规范"TS 化为预建骨架）。课件未制作。
+
+## 第 1 课记录（2026-09-02 结业）
+
+**踩坑与事件（均已修，课件已同步）**：
+
+- ⚠️ **API key 硬编码安全事件**：学员曾把智谱 key 明文写进 ex1/ex2 源码并推送到**公开** GitHub 仓库（Rager-man/Learn_center，commit 934515d）。工作树已改回 `process.env.LLM_API_KEY!` 写法；已提醒 revoke key + 查账单；**git 历史清理待用户决定**。教训已写进课件（第 2 课 §0"key 只进环境变量"）：secret 只走环境变量，永不进源码——`git init` 前第一道检查。
+- `npm init -y` 在中文目录名（01_API基础）失败——非合法 npm 包名，package.json 需手写（项目后来落在仓库根，问题消解）。
+- macOS `/private` 符号链接：`import.meta.filename === process.argv[1]` 直接比较失败，需 `realpathSync` 两边归一（已沉淀为 `reference/ts-debug-repl.md` §1）。
+- `<details>` 折叠在学员实际查看器无效——课程自此从"独立答案册"改为折叠 callout 内嵌课件（详见课件演化备忘）。
+- ex2 代码设计瑕疵（不影响跑通，已布置改造）：`api_call` 内部直接 push 全局 `llm_messages`（隐藏副作用）；首行输入 `/exit` 仍会先发一次请求（循环入口边界）。第 3 课 agent loop 前按第 2 课 §5 改造（改成返回 `{ content, usage }` 由调用方 push）。
+
+**判卷记录（2026-09-02）**：
+
+- **Q1 为什么"不记得"**：首次口述差半步——把 /delete 实验里"删了两条消息"当成不记得的原因，且方向说反（messages 是**发给** API 的请求体，不是 API 返回的）。**同日重述通过**，三要素齐：无状态 / 服务器不存 / 唯一信息来源 = 发过去的历史。压缩记法已立：**没发的，等于不存在。**→ 后续课留意 messages 方向感回潮。
+- **Q2 删第 2 轮 + token 影响**：过。判卷补强两点：① 数组是 `[system, u1, a1, u2, a2…]`，`splice(1, 2)` 删的实际是**第 1 轮**——他的 /delete 实为"遗忘最早一轮"（上下文裁剪的雏形）；要删第 2 轮得 `splice(3, 2)`。② token 省的不止一次：历史每轮全量重发，删掉后**之后每一轮**输入都少这一段。
+- **Q3 system vs user**：过（system 定人设、user 是输入、改 system 影响人设）。补强：改 system 从下一轮立即生效（数组整体重发、模型每轮重读人设）——他换 Palantir 人设时已亲历。
+- 课件自测五题：完成（课件内折叠对照）。
+
+**亮点**：
+
+- **`/delete` 命令是学员自创**（splice 掉 messages 第 1–2 条），把课件里的"失忆实验"做成了常驻功能——无状态认知的直接证据，也是上下文裁剪的雏形（第 4 课 agent loop 与长期路线"记忆管理"的入场素材）。
+- system 人设自定义为"Palantir 高级工程师"——个性化而非照抄示例。
+- ex1 在课件骨架外自己加了两行打印 `typeof content`——第 2 课"content 是字符串"的伏笔就这么埋下了（第 2 课 §1 开场已回收）。
+
+**教学观察（第 2 课要用）**：
+
+- 学员偏差方向：概念**方向感**偶有颠倒（把发给 API 的说成 API 返回的）——判卷先查方向，再查细节。
+- 自查清单自己勾选（带 ✅ 日期），完成仪式感到位。
+- 档案信息存疑时以代码为准（曾记录供应商 DeepSeek，实际第 1 课已在用智谱——已更正）。
+
+**伏笔存档（后续课开场素材）**：
+
+- `typeof content === "string"` 学员亲手打印过——第 2 课 §1 已回收兑现。
+- `reasoning_content`（思维链）vs `content`（正文）——glm-5.3-flash 强制思考，第 2 课压测反复见到，判卷留意"谁计费、取哪个"。
+- ex2 的 `api_call` 副作用——第 3 课 agent loop"发出去的 ≠ 已记入历史"的第一手素材（改造练习已布置在课文 §5）。
+- usage 三件套——任务 3 当时是整包 JSON 顺带看的，第 2 课热身已补 `console.log(data.usage)` 专打。
+
+## 第 2 课记录（进行中）
+
+- 课件沿革：2026-08-30 重做版开课（DeepSeek 主线，第一版因学员节奏问题整体回退）→ 2026-08-31 全课 TS 化 → 2026-09-02 智谱化改造（§0 env / 热身改"跑通 ex1"、课前读换智谱结构化输出文档、§2.1 规矩换智谱版、chat() 骨架删 thinking:disabled、任务 1 第 4 步改"招式一二合体"、自查清单 / Q2 换智谱题、§5 改造练习；速查表 §1 / §7 同步。事实来源：glm-5.3-flash 模型页 / thinking-mode / struct-output 三页官方文档）。
+- ex3 当前状态见进度总览。学员自加 3 条压测评论——测试集意识好，判卷时逐条对号 §2.3 失败模式表。
+- 待办：学员完成任务 2 → 勾计划两个 checkbox → 判卷复盘两题 → 在本节补判卷记录 → 结业。
+
+## 课件演化备忘（压缩存档）
+
+- 2026-08-27 建 20 小时计划 → 08-28 第 1 课开课（HTML 课件时代，后按用户要求删）→ 08-29 第 2 课第一版交付、次日应用户要求整体回退（学员尚未准备好，节奏问题非课件问题，详见 `.workbuddy-ai/memory/2026-08-30.md`）→ 08-30 第 2 课重做版（DeepSeek 主线）+ 答案册模式 → 08-30/31 两课先后 TS 化 → 08-31 答案册并入课件改折叠 callout（定版）→ 09-02 智谱主线 + 第 1 课结业。
+- 2026-09-03 组织层按 TypeScript 课件框架重构：NOTES 改三大件（学员档案 / 进度总览 / 每课记录），learning-records 并入本文件后删除，各代码目录 README 删除，03/04/05 目录改"上课时创建"，Python 旧练习归档 `01_API基础/archive/`，练习文件头对齐骨架六件套（ex3 追加任务 2 待写区），课文补 §0 固定板块（文件清单 / 开场复查 / tsc 安检），新增 `AI_agent/tsconfig.json` 与"课件版式规范"。速查表与 ts-debug-repl 保留在 `reference/`。
+
+## 课件版式规范（对齐 TypeScript 课件，第 3 课起严格执行）
+
+**课文**（`lessons/000N-slug.md`，六段式，各 § 之间 `---`）：
+
+- §0 开工准备：tsc 安检（`npx tsc --noEmit` + 红绿预判剧本）→ 本课练习文件清单（路径 + 角色 + 状态）→ 开场复查（回收上一课观念回潮点，10 秒级）→ 💡 课前读（链接 + 一句性价比评价）。业务安检（如 curl 预检）按课放置。
+- §1 核心认知：◆ 唯一必须带走的东西 → 开场检索（回忆上一课伏笔）→ 示例（✗/✓ 标注）→ **编号推论固定三条** → ⚠️ 本课避坑 → §1.1 动笔预测（[!success]- 先写完再展开）。
+- §2 知识讲解（约 30 分钟，子节分块，对比表格优先）。
+- §3 练习 80 分钟：任务句式"打开 `0X/exN_xxx.ts`——一句剧本"（骨架预建在文件里，课文不再内嵌完整骨架；讲解性代码块保留）；硬性要求编号列表（含禁用项）；[!tip]- 提示约三条折叠；**每任务一个 ✅ 检查点（比写完代码更重要）**；§3.4 自查清单（完成勾选 + 追加 `✅ 日期`）；💡 卡住 20 分钟求助框（期望 / 实际 / 完整报错 / 相关代码）。
+- §4 复盘：规则声明（合上代码口述）+ 3 道复盘题（**与总计划逐字一致，两处同步维护**）+ 自测 Q1–Q5（[!question]- 先默答再点开）。
+- §5 下课：学有余力（可选）→ 完成后回来找我（判卷 → 勾计划 checkbox → 记 NOTES 课记录 → 下一课预告含伏笔点名）→ 💡 导师声明（提词器声明）。
+- 页脚：上一课 / 下一课双链（未解锁课写纯文本）+ 总计划链接。课名格式 `第 N 课 · 主题——副标题`。
+
+**练习代码**（`0X_目录/exN_name.ts`，编号全局连续，**导师预建骨架**）：
+
+- 头注释六件套：① 角色行 `// 0X_目录/exN_name.ts —— 角色（第 M 课 · 任务 K：练习名）`（角色：骨架 = 绿出生的 TODO 图纸 / 靶场 = 出生即红的修复练习 / 起步骨架 = 只给姿势）② 用法行（`npx tsx …` + 出生红绿说明）③ 剧本（业务背景 + 跨课伏笔引用）④ 规则（禁用项 / 命名 / 判卷标准）⑤ TODO N) 编号块（子步骤引课文 §2.X）⑥ 演示区：`// ====== 演示区（TODO N，写完上面再动手）======` + 演示要求逐条 + 完成判据（tsc 沉默 + 可观察行为）。
+- 测试数据预置在文件里。
+- 已完成文件：头注释加 `✅ 日期 完成` 注记；TODO 注释保留（学员代码插在中间），不回收骨架。
+- 课程技术约定：env 三件套（`LLM_BASE_URL` / `LLM_MODEL` / `LLM_API_KEY`）、fetch 裸调不用 SDK（function calling 课后再议）、`type Role` / `interface Message` 同款定义、`AbortSignal.timeout(60_000)`、main() 包裹、中文键业务类型合法、密钥永不进源码。
 
 ## 工作区结构
 
-- `00_学习路线图.md`：4–6 个月长期完整路线（等级 1–5）
-- `00_20小时速通计划.md`：10 次 × 2 小时速通计划（本次交付），与长期路线共存
-- `01_API基础/` `02_ToolUse/` `03_RAG/` `04_多步Agent/` `05_毕业项目/`：练习代码目录（速通计划复用同一套目录）
-- `lessons/`（课件）、`reference/`（速查表）、`learning-records/`（学习档案）：课程素材
-- `RESOURCES.md`：精选资源；`MISSION.md`：学习使命
+- `00_20小时速通计划.md`（10 次课总计划，练习 checkbox 进度的唯一所在地）/ `00_学习路线图.md`（4–6 个月长期路线，与速通共存）
+- `NOTES.md`（本文件）/ `MISSION.md`（学习使命）/ `RESOURCES.md`（精选资源，按课次标注）
+- `lessons/`（课件正文）；`reference/`（chat-completions 速查表、ts-debug-repl 速查表，持续核实维护）
+- `01_API基础/`（第 1–2 课练习；`archive/` 存 Python 时代旧练习）；`02_ToolUse/`（第 3–6 课练习，含待 TS 化的 ex4_questions.py）
+- 03/04/05 代码目录按计划"上课时创建"；`tsconfig.json`（课件自用，tsc 安检）
 
 ## 待确认
 
-- MISSION.md 为推断版，等用户修正
-- 全课程语言已实际转向 TypeScript（第 1、2 课均为 TS，用户另有并行 TS 课程）；速通计划"前置要求"（Python 基础）与 MISSION 的措辞待下次修改时一并改写。用户的 Python 练习文件（ex1/ex2/ex2.ipynb）保留未删
-- 用户可用的 MCP 客户端未确认（第 9 次课需要，届时确认装的是 Claude Desktop 还是其他）
-
-## 用户环境（2026-08-28 检查）
-
-- anaconda Python 3.13.9（/Users/clock1/tools/anaconda3/bin/python3）
-- requests 2.32.5 已装；openai SDK 未装
-- **Node 22.22.2 + npm 10.9.7 已确认（2026-08-30）**；bun/deno 未装。npm 项目在**工作区根目录**（package.json 名 `ai_agent`，`type: module`；2026-08-31 核实）：tsx ^4.23、@types/node、typescript ^7.0 已装，另有 dotenv 与 openai ^7.8 备用（openai SDK 已装，但课程在 function calling 课前仍刻意不用）。跑法 `npx tsx 文件名.ts`（在 01_API基础/ 里跑，npx 自动向上找根目录 node_modules）
-- API 供应商已确认（2026-09-02 用户拍板）：**智谱 GLM，glm-5.3-flash**（原生多模态但纯文本照用；1M 上下文；**强制思考不可关**——文档明示仅支持 enabled，2026-09-02 复核）。第 2 课课件已改智谱主线
-
-## 教学进度
-
-- 2026-08-27：创建 20 小时速通计划，尚未开始第 1 次课
-- 2026-08-28：第 1 次课开课。交付（markdown 版）：课件 `lessons/0001-llm-api-stateless-messages.md`（含动笔拼 messages 练习 + 5 题折叠自测）、`reference/chat-completions-cheatsheet.md`（三家供应商接入信息已核实）。早先的 HTML 版课件与 `assets/`（course.css、quiz.js）已按用户要求删除。待用户完成 80 分钟练习并回报后：勾计划 checkbox、写第一条 learning-record、判卷口述复盘题
-- 2026-08-29：曾交付一版第 2 课（结构化输出），次日用户要求整体回退，已全部还原（详见 `.workbuddy-ai/memory/2026-08-30.md`）
-- 2026-08-30：第 2 次课开课（重做版）。回退原因已向用户确认：当时还没准备上第 2 课（节奏问题，非课件问题）；废纸篓已清空、旧版不可找回，本次全新重写。交付：课件 `lessons/0002-structured-output.md`（以 DeepSeek 为主线；因第 1 课练习未做，§0 内置热身——速通版 ex1 最小调用）、`reference/chat-completions-cheatsheet.md` 加回 §7 结构化输出（三家核实结论沿用 08-29 版）。已知状态：第 1 课 ex1/ex2 练习未做（计划 checkbox 均未勾），第 2 课课件已提示课后补 ex2。待用户完成第 2 课 80 分钟练习并回报后：勾两课 checkbox、写 learning-record、判卷口述复盘题
-- 2026-08-30：用户反馈 `<details>` 折叠在其实际查看器（浏览器内 md 预览）里无效——渲染为永远展开。已把第 1、2 课的全部折叠块迁移为独立答案册模式：新增 `lessons/0001-answers.md`、`lessons/0002-answers.md`，课件内改为锚点链接（#sec-1-1 / #hint-N / #qN）。后续课件直接沿用此模式
-- 2026-08-30：按用户要求把第 1 课改为 TypeScript：`lessons/0001-llm-api-stateless-messages.md` 全部代码换 `fetch`/`tsx`/`readline`（新增 §0.1 环境搭建），`0001-answers.md` 提示同步，速查表 §6 改双语言代码块（TS 在前，Python 保留）。第 2 课仍为 Python 未动；用户已有的 ex1/ex2 Python 练习文件保留未删
-- 2026-08-30：用户问 TS 如何像 Python 一样 debug + 控制台执行函数。已实测（Node 22 + tsx）：tsx REPL 支持 TS 语法/跨行变量/顶层 await；`--inspect-brk` 可转发；macOS `/private` 符号链接导致 `import.meta.filename === process.argv[1]` 失效，需 realpathSync 比较。整理成 `reference/ts-debug-repl.md` 速查表
-- 2026-08-31：按用户要求把第 2 课也改为 TypeScript：重写 `lessons/0002-structured-output.md` 全部代码（fetch/tsx，约定对齐第 1 课 TS 版：main() 包裹、AbortSignal.timeout、type Role/interface Message、答案册链接模式），`0002-answers.md` 同步措辞，速查表 §7 去 Python 化。要点：chat() 骨架加 `"thinking": {"type": "disabled"}` + `temperature: 0`（依据 §3.1——DeepSeek V4 默认开思考、思考模式下 temperature 失效）；§1 新增"TS 类型管不到运行时"避坑（贴合本课主题）；热身改为"把用户已完成的 Python ex1 翻译成 TS"。发现用户已完成第 1 课 Python 练习（ex1/ex2/ex2.ipynb，08-30 晚），checkbox/learning-record/判卷仍待用户回报。顺手修正两处过时表述：第 1 课 §0.1（原 npm init 指引——目录名报 Invalid name 且项目已不在那里）、ts-debug-repl §1（项目实际在根目录）。第 2 课 TS 骨架已经 tsx 烟雾测试（转译执行、parseReview 剥围栏/BadJSON、中文键 interface 均通过）
-- 2026-08-31：按用户要求把第 1、2 课答案册内容并回课件，改用 Obsidian 折叠 callout（用户确认现在主要在 Obsidian 里看课件）：§1.1 对照答案 → `[!success]-`、任务提示 → `[!tip]-`、自测 Q1–Q5 → `[!question]-`，第 1 课 7 处、第 2 课 6 处；答案册 `0001-answers.md`、`0002-answers.md` 已 `git rm`；§4 复盘措辞同步（"跳到答案册"→"点开折叠"）。上条记录里的"答案册链接模式"自此作废，后续课件直接用折叠 callout 内嵌
-- 2026-09-02：第 1 课完成（TypeScript 版）。用户自查清单已自己勾选（带 ✅ 日期）；我勾了计划第 1 课三 checkbox、写了 learning-record `learning-records/0001-llm-api-stateless-messages.md`。⚠️ 安全事件：用户曾在 ex1 硬编码智谱 API key 并推送到**公开** GitHub 仓库（Rager-man/Learn_center，commit 934515d）——ex1/ex2 工作树已改回 process.env 写法（未提交），已提醒 revoke key + 查账单；git 历史清理待用户决定。复盘三题口述待判卷
-- 2026-09-02：判卷第 1 课复盘三题：Q2/Q3 过；Q1 差半步（把"删了两条消息"当成不记得的原因、把 messages 说成"返回给 API 的"——实为发给 API 的请求体；"无状态 + 全量重发"待用户重述）。用户拍板智谱主线，第 2 课课件已完成智谱化改造（§0 env/热身改"跑通 ex1"、课前读改智谱结构化输出文档、§2.1 规矩换智谱版、chat() 骨架删 thinking:disabled、任务 1 第 4 步改"招式一二合体"、自查清单/Q2 换智谱题、§5 语言迁移改"顺手改造 api_call"）；速查表 §1 智谱行加 glm-5.3-flash、§7 智谱行按当日核实更新。智谱事实来源：glm-5.3-flash 模型页 / thinking-mode / struct-output 三页官方文档
-- 2026-09-02：Q1 重述通过（无状态 / 服务器不存 / 唯一信息来源 = 发过去的历史，三要素齐），第 1 课复盘关闭。下一步：用户做第 2 课练习（课件已智谱化，glm-5.3-flash 强制思考属正常现象）
+- 学员可用的 MCP 客户端未确认（第 9 次课需要，届时确认装的是 Claude Desktop 还是其他）
+- git 历史中泄露 key（commit 934515d）的清理方式待用户决定

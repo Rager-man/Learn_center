@@ -12,7 +12,7 @@
 
 ## Constraints
 - 总时长 20 小时（10 次 × 2 小时），建议隔天一次、约 3–4 周完成
-- Python 基础，agent 零基础
+- TypeScript 基础（并行 TS 课程进行中），agent 零基础
 - 使用 OpenAI 兼容 API（智谱 GLM / DeepSeek / Qwen 均可）
 - 教学语言：中文，技术术语保留英文
 
