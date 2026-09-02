@@ -34,33 +34,37 @@ const mailbox = new Map<number, string>([
 
 // 病灶 1 —— 意图：有昵称显示「昵称（本名）」，没昵称就直接用本名
 function displayName(s: Student): string {
-  return s.nickname.toUpperCase() + "（" + s.name + "）";
+  if(s.nickname !== undefined) {
+    return s.nickname.toUpperCase() + "(" + s.name + ")";
+  }
+  return s.name;
 }
 
 // 病灶 2 —— 意图：找出第一个有成绩记录的人；一个都没有时，把"可能没有"如实写进返回类型
-function firstScored(list: Student[]): Student {
-  return list.find(s => s.scores.length > 0);
+function firstScored(list: Student[]): Student | undefined {
+  const std = list.find(s => s.scores.length > 0);
+  return std;
 }
 
 // 病灶 3 —— 意图：查这个学生的登记邮箱；没登记的返回类型上就该是"可能没有"，兜底留给调用方
-function mailboxOf(id: number): string {
-  return mailbox.get(id).toUpperCase();
+function mailboxOf(id: number): string | undefined {
+  return mailbox.get(id)?.toUpperCase();
 }
 
 // 病灶 4 —— 意图：取邮箱 @ 后面的域名；没留邮箱的返回 "没留邮箱"
 function emailDomain(s: Student): string {
-  return s.email.split("@")[1];
+  return s.email?.split("@")[1] ?? "没留邮箱";
 }
 
 // 病灶 5 —— 意图：返回第一场成绩；还没考过显示 -1。注意：0 分是真实成绩，不许吞
 function firstScore(s: Student): number {
-  return s.scores[0] || -1;
+  return s.scores[0] ?? -1;
 }
 
 // 病灶 6 —— 意图：报告第一场战况。考了 0 分要如实说"首战 0 分"，还没考过才说"还没考过"
 function scoreReport(s: Student): string {
   const first = s.scores[0];
-  if (first) {
+  if (first != null) {
     return "首战 " + first + " 分";
   }
   return "还没考过";
@@ -68,15 +72,15 @@ function scoreReport(s: Student): string {
 
 // 病灶 7 —— 意图：把编号统一成 "S-" 开头的大写字符串；编号允许传字符串或数字
 function studentNo(id: string | number): string {
-  return "S-" + id.toUpperCase();
+  return "S-" + id.toString().toUpperCase();
 }
 
 // 病灶 8 —— 意图：大声喊出昵称；没昵称就喊本名。shout 只收 string，这意图怎么落地？
 function shout(name: string): string {
-  return name.toUpperCase() + "！！！";
+  return name.toUpperCase() + "!!!";
 }
 function nicknameShout(s: Student): string {
-  return shout(s.nickname);
+  return shout(s.nickname ?? s.name);
 }
 
 // ======================= 演示区（TODO 9，修完病灶再动手）=======================
@@ -90,3 +94,15 @@ function nicknameShout(s: Student): string {
 //   - studentNo("a01") / studentNo(7) → 两种编号都能过
 //   - nicknameShout(小美) → 没昵称：喊的是本名
 // 完成判据：npx tsc --noEmit 全项目沉默 + 上面每条都打印出说得通的结果
+console.log(displayName(roster[0]));       // 小钟有昵称
+console.log(displayName(roster[1]));       // 小美没昵称
+console.log(firstScored(roster));          // roster 里有人有成绩
+console.log(firstScored([]));              // 演示"一个都没有"的情况
+console.log(mailboxOf(2) ?? "没登记");      // 小美没登记邮箱
+console.log(emailDomain(roster[1]));       // 小美没邮箱
+console.log(firstScore(roster[1]));        // 小美第一场是 0 分
+console.log(scoreReport(roster[2]));       // 阿强没考过
+console.log(scoreReport(roster[1]));       // 小美首战 0 分
+console.log(studentNo("a01"));             // 字符串编号
+console.log(studentNo(7));                 // 数字编号
+console.log(nicknameShout(roster[1]));     // 小美没昵称
