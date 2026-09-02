@@ -28,7 +28,7 @@
 - anaconda Python 3.13.9（/Users/clock1/tools/anaconda3/bin/python3）
 - requests 2.32.5 已装；openai SDK 未装
 - **Node 22.22.2 + npm 10.9.7 已确认（2026-08-30）**；bun/deno 未装。npm 项目在**工作区根目录**（package.json 名 `ai_agent`，`type: module`；2026-08-31 核实）：tsx ^4.23、@types/node、typescript ^7.0 已装，另有 dotenv 与 openai ^7.8 备用（openai SDK 已装，但课程在 function calling 课前仍刻意不用）。跑法 `npx tsx 文件名.ts`（在 01_API基础/ 里跑，npx 自动向上找根目录 node_modules）
-- API 供应商：用户第 1 课实际用**智谱 glm-5.3-flash**（2026-09-02 从代码观察到，早先记录的 DeepSeek 有误）；第 2 课课件以 DeepSeek 为主线，开课前向用户确认主线
+- API 供应商已确认（2026-09-02 用户拍板）：**智谱 GLM，glm-5.3-flash**（原生多模态但纯文本照用；1M 上下文；**强制思考不可关**——文档明示仅支持 enabled，2026-09-02 复核）。第 2 课课件已改智谱主线
 
 ## 教学进度
 
@@ -42,3 +42,5 @@
 - 2026-08-31：按用户要求把第 2 课也改为 TypeScript：重写 `lessons/0002-structured-output.md` 全部代码（fetch/tsx，约定对齐第 1 课 TS 版：main() 包裹、AbortSignal.timeout、type Role/interface Message、答案册链接模式），`0002-answers.md` 同步措辞，速查表 §7 去 Python 化。要点：chat() 骨架加 `"thinking": {"type": "disabled"}` + `temperature: 0`（依据 §3.1——DeepSeek V4 默认开思考、思考模式下 temperature 失效）；§1 新增"TS 类型管不到运行时"避坑（贴合本课主题）；热身改为"把用户已完成的 Python ex1 翻译成 TS"。发现用户已完成第 1 课 Python 练习（ex1/ex2/ex2.ipynb，08-30 晚），checkbox/learning-record/判卷仍待用户回报。顺手修正两处过时表述：第 1 课 §0.1（原 npm init 指引——目录名报 Invalid name 且项目已不在那里）、ts-debug-repl §1（项目实际在根目录）。第 2 课 TS 骨架已经 tsx 烟雾测试（转译执行、parseReview 剥围栏/BadJSON、中文键 interface 均通过）
 - 2026-08-31：按用户要求把第 1、2 课答案册内容并回课件，改用 Obsidian 折叠 callout（用户确认现在主要在 Obsidian 里看课件）：§1.1 对照答案 → `[!success]-`、任务提示 → `[!tip]-`、自测 Q1–Q5 → `[!question]-`，第 1 课 7 处、第 2 课 6 处；答案册 `0001-answers.md`、`0002-answers.md` 已 `git rm`；§4 复盘措辞同步（"跳到答案册"→"点开折叠"）。上条记录里的"答案册链接模式"自此作废，后续课件直接用折叠 callout 内嵌
 - 2026-09-02：第 1 课完成（TypeScript 版）。用户自查清单已自己勾选（带 ✅ 日期）；我勾了计划第 1 课三 checkbox、写了 learning-record `learning-records/0001-llm-api-stateless-messages.md`。⚠️ 安全事件：用户曾在 ex1 硬编码智谱 API key 并推送到**公开** GitHub 仓库（Rager-man/Learn_center，commit 934515d）——ex1/ex2 工作树已改回 process.env 写法（未提交），已提醒 revoke key + 查账单；git 历史清理待用户决定。复盘三题口述待判卷
+- 2026-09-02：判卷第 1 课复盘三题：Q2/Q3 过；Q1 差半步（把"删了两条消息"当成不记得的原因、把 messages 说成"返回给 API 的"——实为发给 API 的请求体；"无状态 + 全量重发"待用户重述）。用户拍板智谱主线，第 2 课课件已完成智谱化改造（§0 env/热身改"跑通 ex1"、课前读改智谱结构化输出文档、§2.1 规矩换智谱版、chat() 骨架删 thinking:disabled、任务 1 第 4 步改"招式一二合体"、自查清单/Q2 换智谱题、§5 语言迁移改"顺手改造 api_call"）；速查表 §1 智谱行加 glm-5.3-flash、§7 智谱行按当日核实更新。智谱事实来源：glm-5.3-flash 模型页 / thinking-mode / struct-output 三页官方文档
+- 2026-09-02：Q1 重述通过（无状态 / 服务器不存 / 唯一信息来源 = 发过去的历史，三要素齐），第 1 课复盘关闭。下一步：用户做第 2 课练习（课件已智谱化，glm-5.3-flash 强制思考属正常现象）

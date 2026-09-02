@@ -12,7 +12,7 @@
 
 | 供应商 | LLM_BASE_URL | LLM_MODEL（入门） | 文档 |
 |---|---|---|---|
-| 智谱 GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-5.3` | [HTTP 调用指南](https://docs.bigmodel.cn/cn/guide/develop/http/introduction) |
+| 智谱 GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-5.3` / `glm-5.3-flash`（约 1/10 价，多模态但纯文本照用） | [HTTP 调用指南](https://docs.bigmodel.cn/cn/guide/develop/http/introduction) |
 | DeepSeek | `https://api.deepseek.com` | `deepseek-v4-flash`（便宜）/ `deepseek-v4-pro` | [API 文档](https://api-docs.deepseek.com/) |
 | Qwen（百炼） | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` / `qwen-turbo`（便宜） | [OpenAI 兼容说明](https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope) |
 | OpenAI | `https://api.openai.com/v1` | 以[模型列表页](https://platform.openai.com/docs/models)为准 | [API Reference](https://platform.openai.com/docs/api-reference/chat) |
@@ -140,7 +140,7 @@ usage = data["usage"]                             # ← 记账
 
 ## §7 结构化输出（response_format）
 
-> 2026-08-29 依据各家官方文档核实。第 2 课主线，换供应商先看这张表。
+> 2026-08-29 依据各家官方文档核实，智谱行 2026-09-02 复核。第 2 课主线，换供应商先看这张表。
 
 用法就一行（加在请求体里）：
 
@@ -151,7 +151,7 @@ usage = data["usage"]                             # ← 记账
 | 供应商 | 支持的类型 | 硬性要求 / 已知坑 |
 |---|---|---|
 | DeepSeek | `json_object` | **prompt 必须含 "json" 字样**（否则 400），建议附格式示例；**有概率返回空 `content`**（官方文档明示）；不支持 `json_schema` |
-| 智谱 GLM | `json_object` | 官方未演示 `json_schema`；推荐做法：Schema 写进 system prompt + 本地校验（Python 生态 jsonschema、TS 生态 zod；本课手写 if 就够） |
+| 智谱 GLM | `json_object` | **无 prompt 字样硬要求**，但需在 system 消息中定义期望结构；不支持 `json_schema`；官方示例自带客户端二次校验（Python jsonschema、TS zod） |
 | Qwen（百炼） | `json_object`；`json_schema` 仅 Qwen3.8-Max / 3.7-Max / 3.7-Plus / 3.8-Flash / 3.7-Flash 系列 | `json_object` 要求 messages 里含 "JSON" 字样，否则 400；**开启结构化输出时不要设 `max_tokens`** |
 
 （OpenAI 另支持最严格的 `json_schema` 严格模式，本次未逐条核实，用得上时以[官方文档](https://platform.openai.com/docs/guides/structured-outputs)为准。）

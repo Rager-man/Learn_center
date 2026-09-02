@@ -2,7 +2,7 @@
 
 > **AI Agent 开发 · 20 小时速通 · 2 / 10**
 > 节奏：**30 分钟学**（§0–§2，§0 含热身）→ **80 分钟练**（§3，代码放 `01_API基础/`）→ **10 分钟复盘**（§4）。
-> 主线按 **DeepSeek** 写（你选定的那家）；智谱 / Qwen 的差异收在 §2.5，换供应商时回来查。
+> 主线按 **智谱 GLM** 写（你在用的 glm-5.3-flash）；DeepSeek / Qwen 的差异收在 §2.5，换供应商时回来查。
 > 代码与第 1 课的 TS 版同款：Node 内建 `fetch` 裸调 HTTP，跑法 `npx tsx`——npm 项目早就装好了，今天依然什么都不用装。
 > 照例提醒：本课核心认知与语言无关——"模型输出不可全信"在 Python 里成立，在 TypeScript 里照样成立。
 
@@ -10,12 +10,12 @@
 
 ## §0 开工准备 + 热身（15 分钟）
 
-第 1 课的练习还没动笔，没关系——本课开头就是热身：先亲手把一次 API 调用跑通，再谈结构化。三个环境变量（新开终端要重设，想一劳永逸就写进 `~/.zshrc`）：
+第 1 课的 ex1/ex2 你已经跑通——地基有了，直接谈结构化。三个环境变量（新开终端要重设，想一劳永逸就写进 `~/.zshrc`）。**key 只进环境变量，别写进代码**——上一课的教训还热乎：
 
 ```bash
-export LLM_BASE_URL="https://api.deepseek.com"
-export LLM_MODEL="deepseek-v4-flash"      # 便宜，练手首选
-export LLM_API_KEY="在这里粘贴你的 key"     # platform.deepseek.com/api_keys
+export LLM_BASE_URL="https://open.bigmodel.cn/api/paas/v4"
+export LLM_MODEL="glm-5.3-flash"          # 你在第 1 课用的型号，价格约 GLM-5.3 的 1/10
+export LLM_API_KEY="在这里粘贴你的 key"     # bigmodel.cn 控制台；旧 key 作废过的话用新的
 ```
 
 连通性预检，这一行跑通今天的路就通了：
@@ -41,48 +41,23 @@ npx tsx --version   # 在 01_API基础/ 里跑也没问题：npx 会自动向上
 
 今天所有代码都这么跑：`npx tsx 文件名.ts`。要单步调试、想在 REPL 里单独试函数？[ts-debug-repl 速查表](../reference/ts-debug-repl.md)里有现成姿势。脚本里今天只用到三样 JS 特色：`await`（等异步结果）、模板字符串（反引号包着、`${}` 插值）、`const`。别的不用管。
 
-### §0.2 热身：用 TS 把第 1 课重做一遍（10 分钟）
+### §0.2 热身：换上智谱跑通 ex1（3 分钟）
 
-第 1 课任务 1 你已经用 Python 做完了——现在把同一个最小调用翻译成 TS。**翻译本身就是最好的热身**：你会亲眼看到，除了发请求的姿势变了，请求和响应一个字都没变。
+第 1 课的 `ex1_minimal_call.ts` 就是现成的热身——环境变量换成上面的智谱三件套后跑一遍：
 
-新建 `01_API基础/ex1_minimal_call.ts`：
-
-```typescript
-// 01_API基础/ex1_minimal_call.ts —— 第 1 课任务 1 的 TS 重制版
-const BASE_URL = process.env.LLM_BASE_URL!;   // 末尾的 ! 表示"我确定它已设置"
-const API_KEY  = process.env.LLM_API_KEY!;
-const MODEL    = process.env.LLM_MODEL!;
-
-async function main() {
-  const resp = await fetch(`${BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: "user", content: "用一句话解释什么是 JSON" }],
-    }),
-    signal: AbortSignal.timeout(60_000),      // ← 60 秒超时
-  });
-
-  const data = await resp.json();
-  console.log(resp.status);
-  console.log(JSON.stringify(data, null, 2));
-}
-main();
+```bash
+npx tsx ex1_minimal_call.ts
 ```
 
 跑通后盯住两处，后面 70 分钟全靠它们：
 
-1. `data.choices[0].message.content`——模型的回复正文。（你的 DeepSeek 默认开着思考模式，message 里多半还有个 `reasoning_content` 字段——那是思维链，取正文不受影响，详见[速查表 §3.1](../reference/chat-completions-cheatsheet.md)。）
+1. `data.choices[0].message.content`——模型的回复正文。（你的 glm-5.3-flash **强制开启思考模式、关不掉**，message 里多半还有个 `reasoning_content` 字段——那是思维链，思考部分照常计费；取正文不受影响，详见[速查表 §3.1](../reference/chat-completions-cheatsheet.md)。）
 2. `data.usage`——计费三件套。
 
 哪个字段干什么忘了，回[第 1 课 §2.2 的响应解剖图](0001-llm-api-stateless-messages.md)扫一眼。
 
 > 💡 **课前读什么**
-> [DeepSeek 文档](https://api-docs.deepseek.com/)里的 **JSON Output** 指南（10 分钟）。§2 讲的每条规矩都出自这里——先读原文再听我讲，体感完全不同。
+> [智谱 · 结构化输出](https://docs.bigmodel.cn/cn/guide/capabilities/struct-output.md)（10 分钟）。§2 讲的每条规矩都出自这里——先读原文再听我讲，体感完全不同。
 
 ---
 
@@ -135,15 +110,14 @@ console.log(typeof content);   // "string"   ← 不是 object，是字符串
 "response_format": { "type": "json_object" }
 ```
 
-DeepSeek 对这一招有**两条规矩**，都是官方文档明示的：
+智谱对这一招的规矩（2026-09-02 依据官方文档核实。**这些规矩换一家就变**——DeepSeek 要求 prompt 含 "json" 字样否则 400、且明示可能返回空 content；智谱这两条都没有）：
 
-1. **prompt 里必须出现 "json" 字样**，最好再给一个格式示例——不然直接 400 拒绝你（返回体里会写原因，速查表 §5 的老朋友）。这不是 bug，是它强制你在调用前想清楚要什么格式。
-2. **有概率返回空 content**：模型把力气全花在内部推理上，最后什么都没吐出来。识别很简单——`content` 是个空串。
-
-（第三条算送分：DeepSeek 只支持 `json_object`，不支持 `json_schema`。）
+1. **只支持 `json_object`**，没有 `json_schema`。
+2. **要求在 system 消息里定义期望的 JSON 结构和字段要求**——所以招式一和招式二天然是一对：system 写 Schema（§2.2），再加 response_format 上一道协议层保险。
+3. 官方示例代码自己就带着解析异常捕获 + 客户端二次校验——**官方都不全信 JSON mode，你也别。**
 
 > ⚠️ **本课避坑**
-> 最大的错觉是"开了 JSON mode 就高枕无忧"。`response_format` 是**提高守规矩的概率**，不是**保证**——DeepSeek 官方文档白纸黑字：JSON 模式下**有概率返回空的 `content`**。所以兜底不是"以防万一"的防御性编程姿态，是常规代码路径：线上跑一万条，每一种失败你都会撞上。
+> 最大的错觉是"开了 JSON mode 就高枕无忧"。`response_format` 是**提高守规矩的概率**，不是**保证**——智谱文档明说 JSON 模式"可能影响回答的自然性"，官方示例还自带二次校验；DeepSeek 更是白纸黑字：JSON 模式下**有概率返回空的 `content`**。所以兜底不是"以防万一"的防御性编程姿态，是常规代码路径：线上跑一万条，每一种失败你都会撞上。
 
 ### §2.2 招式二：Schema 写进 prompt（民间偏方）
 
@@ -164,7 +138,7 @@ const SYSTEM_PROMPT = `你是商品评论分析器。只输出一个 JSON 对象
 | ---------------------- | --------------------------- | ------------------------ |
 | 守规矩概率                | 高（协议层约束）                | 中（靠模型自觉）               |
 | 换供应商                  | 各家行为不一，要逐家核对            | **零改动**，哪家都吃           |
-| 空输出风险                | DeepSeek 官方明示存在          | 低                       |
+| 空输出风险                | 智谱未提及；DeepSeek 官方明示存在  | 低                       |
 | 字段级校验                 | **没有**——只保证"是个合法 JSON"  | **也没有**——还是要自己校验      |
 
 注意最后一行：**两招都不校验字段**。`json_object` 只保证"整体是个合法 JSON"，不保证字段齐、类型对。所以无论哪招，本地解析 + 校验都省不掉——这正是兜底存在的原因。
@@ -196,15 +170,17 @@ const SYSTEM_PROMPT = `你是商品评论分析器。只输出一个 JSON 对象
 
 第 4 级值得多看一眼——它是本课任务 2 的主角，也是 agent 世界最重要的模式之一，**错误回传**：模型犯错时，不崩、不吞，把"你刚才输出的是这个，报错是这个，修好它"作为新一轮 messages 发回去。第 5 课的工具错误处理，内核就是这一招。
 
-### §2.5 换供应商怎么变（智谱 / Qwen 速查）
+### §2.5 换供应商怎么变（DeepSeek / Qwen 速查）
+
+主线智谱的规矩正文已讲；换别家先看这张表：
 
 | 供应商        | 支持类型                                      | 硬性要求 / 已知坑                                          |
 | ---------- | ----------------------------------------- | ---------------------------------------------------- |
-| DeepSeek   | `json_object`                             | prompt 必须含 "json" 字样；**有概率返回空 content**            |
-| 智谱 GLM    | `json_object`                             | 官方未演示 `json_schema`；推荐 Schema 进 system prompt + 本地校验 |
+| 智谱 GLM    | `json_object`                             | 无 prompt 字样硬要求；需在 system 定义结构；不支持 `json_schema`；官方建议客户端二次校验 |
+| DeepSeek   | `json_object`                             | prompt 必须含 "json" 字样否则 400；**有概率返回空 content** |
 | Qwen（百炼）   | `json_object`；`json_schema` 仅部分高端模型        | messages 必须含 "JSON" 字样否则 400；开结构化输出时**不要设 max_tokens** |
 
-（2026-08-29 依据各家官方文档核实；细节和文档入口见[速查表 §7](../reference/chat-completions-cheatsheet.md)。）
+（智谱行 2026-09-02、其余 2026-08-29 依据各家官方文档核实；细节和文档入口见[速查表 §7](../reference/chat-completions-cheatsheet.md)。）
 
 ---
 
@@ -228,7 +204,6 @@ async function chat(messages: Message[]): Promise<string> {
     body: JSON.stringify({
       model: MODEL,
       messages,
-      thinking: { type: "disabled" },  // ← 关思考模式：分类要快、要省，且思考模式下 temperature 静默失效（速查表 §3.1）
       temperature: 0,                  // ← 随机度拧到最低——分类要稳定
     }),
     signal: AbortSignal.timeout(60_000),
@@ -241,7 +216,7 @@ async function chat(messages: Message[]): Promise<string> {
 }
 ```
 
-两个新参数，各就各位：`temperature: 0` 救不了结构，但能少点火；`thinking: disabled` 是 DeepSeek 的思考开关——你的 V4 默认**开着**思考，又慢又费 token，还会让 temperature 静默失效（细节见[速查表 §3.1](../reference/chat-completions-cheatsheet.md)）。分类任务直接关掉。
+一个新参数，各就各位：`temperature: 0` 救不了结构，但能少点火。至于思考模式——**你的 glm-5.3-flash 强制开启思考、关不掉**（官方文档明示仅支持 `enabled`）：分类任务会先思考再输出，慢一点、`completion_tokens` 多一截（思考部分照常计费）。想关思考的正规出路是换 glm-5.2 这类可关的型号，本课不折腾、就地适应（细节见[速查表 §3.1](../reference/chat-completions-cheatsheet.md)）。
 
 ### 任务 1 · 评论分类器（60 分钟）
 
@@ -286,7 +261,7 @@ const reviews = [
 
 两笔账现在记下：① 有些输入会得到"合法但离谱"的 JSON（比如乱码评论被判成 `置信度: 0.999` 的正面）——**解析成功不代表结果可用**；② 这期间 `classify` 标注的 `Promise<Review>` 一声不吭——类型合同是单方面的（§1 避坑），**运行时验证就是你今天这 80 分钟的正课**。
 
-**第 4 步（15 分钟）· 换招式一对比**：在 `chat` 的请求体里加上 `"response_format": { "type": "json_object" }`（你的 SYSTEM_PROMPT 里已有 "JSON" 字样——§2.1 规矩 1 已满足），重跑压测。对比两招的失败清单：哪些失败消失了？新失败（比如空 content）出现了吗？
+**第 4 步（15 分钟）· 招式一二合体**：在 `chat` 的请求体里加上 `"response_format": { "type": "json_object" }`——system 写 Schema（招式二）+ response_format 协议保险（招式一），正是智谱推荐的组合。重跑压测，对比只有招式二时的失败清单：哪些失败消失了？
 
 ### 任务 2 · 加兜底（20 分钟）
 
@@ -316,7 +291,7 @@ catch (e) {
 
 然后把 `classify` 升级成三级兜底：
 
-3. 解析失败 → **原样重试一次**（temperature 已是 0、思考也关了还失败，说明真不是抖动）。
+3. 解析失败 → **原样重试一次**（temperature 已是 0 还失败，说明真不是抖动）。
 4. 仍失败 → **回传修复**：
 
 ```typescript
@@ -329,7 +304,7 @@ const messages: Message[] = [
 const fixed = await chat(messages);   // 拿到修复版，再走一遍 parseReview
 ```
 
-看清楚这段 messages——**这就是第 1 课讲的"多轮对话"**：坏输出以 assistant 身份进历史，报错作为新的 user 消息发回。你第 1 课的 ex2 用 Python 拼过一模一样的结构——语言换了，动作没换。
+看清楚这段 messages——**这就是第 1 课讲的"多轮对话"**：坏输出以 assistant 身份进历史，报错作为新的 user 消息发回。你第 1 课的 ex2 已经拼过一模一样的结构——坏输出对应哪条 role、报错对应哪条 role，自己指认一遍。
 
 > ✅ **验收标准**
 > 压测三件套（乱码、空文本、超长）全部有明确出路：要么解析成功，要么走完兜底阶梯后得到一个**明确的失败结果**（比如返回 `null` 并打印日志）——**不再有任何一条让程序裸崩**。
@@ -337,7 +312,7 @@ const fixed = await chat(messages);   // 拿到修复版，再走一遍 parseRev
 ### 自查清单
 
 - [ ] 两招都实测过，各有一份失败清单
-- [ ] 空 content 亲手见过至少一次（DeepSeek 会送的，多跑几轮压测）
+- [ ] 在响应里亲手认出 `reasoning_content`（思维链）和 `content`（正文），说得出谁计费、取哪个
 - [ ] `parseReview` 能剥围栏、截花括号
 - [ ] 回传修复的 messages 拼对了——能指出坏输出是哪条 role、报错是哪条 role
 - [ ] 能一句话说清：为什么标了 `Review` 类型，运行时校验照样不能省
@@ -364,12 +339,12 @@ const fixed = await chat(messages);   // 拿到修复版，再走一遍 parseRev
 >
 > 模型输出的一切都是文本——长得像 JSON 的字符串依然是字符串。而这道解析关随时可能失败，所以永远要有兜底。另注意：TS 的类型标注管不到这一步（`resp.json()` 返回 any），编译器不替你把关——运行时验证照旧要自己写。
 
-**Q2. DeepSeek 的 `json_object` 模式有哪两条官方明示的规矩？**
+**Q2. 同样是 `json_object`，智谱的规矩和 DeepSeek 差在哪？最大的共同点是什么？**
 
 > [!question]- 看答案（先默答再点开）
-> **① prompt 里必须含 "json" 字样，否则 400；② 有概率返回空 content。**
+> **差：智谱没有 "json" 字样硬要求（DeepSeek 缺了直接 400），改为要求在 system 里定义结构；智谱也未明示空 content 风险（DeepSeek 明示存在）。**
 >
-> 第一条逼你调用前想清楚格式；第二条提醒你——官方通道提高守规矩的概率，但不做保证。
+> 共同点才是重点：两家都只支持 `json_object`、都**不做字段级校验**——本地解析 + 字段校验永远省不掉。规矩换一家就变，"模型输出不可全信"哪家都不变。
 
 **Q3. 兜底阶梯里，为什么"原样重试"排在"报错回传修复"前面？**
 
@@ -398,7 +373,7 @@ const fixed = await chat(messages);   // 拿到修复版，再走一遍 parseRev
 
 **学有余力（可选）**：给分类器加**字段校验**——`情感` 不在三个合法值里、`置信度` 不是 0–1 的数字，都算失败、走兜底；手写完一遍想上强度的，去看看 `zod` 这类 TS 运行时校验库——但先手写，知道它在帮你做什么。做完你会体会到：**解析成功只是及格线，校验才是可用线。**
 
-**语言迁移练习（可选）**：第 1 课的 ex2 聊天机器人你用 Python 写过了；用 TS 重写一遍试试——`readline` 读输入、push 拼 messages、`node:fs` 存历史，第 1 课课件里的骨架都是现成的。第 3 课起如果继续用 TS，这一步就当提前把手感练出来。
+**顺手改造（可选）**：把你 ex2 的 `api_call` 改掉一个隐患——它内部直接 push 全局 `llm_messages`（隐藏副作用），且首行输入 `/exit` 仍会先发一次请求。改成返回 `{ content, usage }`、由调用方 push，两个问题一起修。第 3 课的 agent loop 全靠"发出去的东西"和"记进历史的东西"分得清，这一步就是预习。
 
 **完成后回来找我**：报告练习完成情况（附上你的实测失败清单更好），我帮你勾掉计划里的 checkbox、写学习档案、判卷复盘口述题。然后随时可以喊"开始第 3 次课"——**Function Calling：让模型驱动你的代码**。今天你在 prompt 里"求"模型说机器话，下一课换成官方协议"命令"它交参数——同一个问题的官方答案。到时候你会发现，兜底照样一个都少不了，但腰杆直了很多。
 

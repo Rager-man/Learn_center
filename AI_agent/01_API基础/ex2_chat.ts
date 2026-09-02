@@ -11,7 +11,7 @@ const llm_messages: Message[] = [
   { role: "system", content: "你是一个Palantir高级工程师。" },
 ];
 
-async function api_call(messages: Message[]) {
+async function api_call(messages: Message[]): Message {
   const resp = await fetch(`${BASE_URL}/chat/completions`, {
     method: "POST",
     headers: {
@@ -26,16 +26,16 @@ async function api_call(messages: Message[]) {
   });
 
   const data = await resp.json();
-  llm_messages.push({ role: "assistant", content: data.choices[0].message.content });
   console.log(resp.status);
   console.log(JSON.stringify(data, null, 2));
+  return data.choices[0].message;
 }
 
 async function main() {
   let line = (await rl.question("你: ")).trim();   // ← 读一行输入
   llm_messages.push({ role: "user", content: line });
   try {
-    await api_call(llm_messages);
+    await llm_messages.push(api_call(llm_messages));
   } catch (error) {
     console.error("API 调用失败:", error);
   }
@@ -47,7 +47,7 @@ async function main() {
     } else if(line === '') continue;
     llm_messages.push({ role: "user", content: line });
     try {
-      await api_call(llm_messages);
+      await llm_messages.push(api_call(llm_messages));
     } catch (error) {
       console.error("API 调用失败:", error);
     }
