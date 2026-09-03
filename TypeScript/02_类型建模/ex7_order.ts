@@ -18,10 +18,17 @@
 // TODO 1) 定义 OrderStatus 与 Order 判别联合（四个变体，形状照"户口"规则和剧本）：
 //   type OrderStatus = ...
 //   type Order = ...
-
+type OrderStatus = "pending" | "paid" | "shipped" | "cancelled";
+type Order = 
+  | { status: "pending"; amount: number }
+  | { status: "paid"; amount: number; paidAt: string }
+  | { status: "shipped"; amount: number; paidAt: string; trackingNo: string }
+  | { status: "cancelled"; amount: number; reason: string };
 // TODO 2) 哨兵函数（穷尽检查的主角，§2.3）：
 //   function assertNever(x: never): never { ... }
-
+function assertNever(x: never): never {
+  throw new Error(`穷尽检查失败，传入了 ${x}`);
+}
 // TODO 3) 状态机：
 //   function next(order: Order, action: "pay" | "ship" | "cancel"): Order
 //   - pending + pay   → paid（补 paidAt：new Date().toISOString()）
@@ -30,7 +37,31 @@
 //   - 其余组合全是非法流转：throw new Error，信息说清"什么状态想干什么"
 //   - switch (order.status) 四个 case 全写，default 交给 assertNever——这就是穷尽检查
 //   - 提示：case 里 order 已收窄成那一支，{ ...order, status: "paid", paidAt } 恰好一个不多一个不少
-
+function next(order: Order, action: "pay" | "ship" | "cancel"): Order {
+    switch (order.status) {
+        case "pending": 
+            if (action === "pay") {
+                return { ...order, status: "paid", paidAt: new Date().toISOString() };
+            } else {
+                throw new Error(`非法流转：pending 状态不能执行 ${action}`);
+            }
+        case "paid":
+            if (action === "ship") {
+                const trackingNo = "SF" + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+                return { ...order, status: "shipped", trackingNo };
+            } else if (action === "cancel") {
+                return { ...order, status: "cancelled", reason: "用户取消订单" };
+            } else {
+                throw new Error(`非法流转：paid 状态不能执行 ${action}`);
+            }
+        case "shipped": 
+            throw new Error(`非法流转：shipped 状态不能执行 ${action}`);
+        case "cancelled":
+            throw new Error(`非法流转：${order.status} 状态不能执行 ${action}`);
+        default:
+            return assertNever(order);
+    }
+}
 // ======================= 演示区（TODO 4，写完上面再动手）=======================
 // TODO 4) 把订单的一生走一遍：
 //   - 第一单：从 { status: "pending", amount: 128.5 } 出发，pay → 打印 → ship → 打印
@@ -38,10 +69,30 @@
 //   - 第二单：pay 后 cancel → 打印
 //   - 非法流转也要演示：对 pending 直接 ship——用 try/catch 接住 throw，打印错误信息（错误路径有人接）
 // 完成判据：npx tsc --noEmit 沉默 + 演示区完整跑完订单的一生（含非法流转被拒）
+let order1: Order = { status: "pending", amount: 128.5 };
+order1 = next(order1, "pay");
+console.log(order1);
+order1 = next(order1, "ship");
+if(order1.status === "shipped") {
+    console.log(order1.trackingNo);
+}
 
+let order2: Order = { status: "pending", amount: 200 };
+order2 = next(order2, "pay");
+order2 = next(order2, "cancel");
+console.log(order2);
+
+let order3 : Order = { status: "pending", amount: 50 };
+try {
+    order3 = next(order3, "ship");
+} catch (error) {
+    if (error instanceof Error) {
+        console.log(error.message);
+    }
+}
 // TODO 5) 删 case 实验（穷尽检查的验收，做完恢复现场）：
 //   1. 把 case "cancelled"（或任一 case）整段删掉
 //   2. npx tsc --noEmit —— 看编译器怎么骂你（错误码 TS____，报错念的是谁？）
 //   3. 把报错原文（连错误码）贴到下一行注释后面（截图存本目录也行）：
-//      >
+//      >error TS2345: Argument of type '{ status: "cancelled"; amount: number; reason: string; }' is not assignable to parameter of type 'never'.
 //   4. 恢复删掉的 case，确认回到 0 error

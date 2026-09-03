@@ -16,7 +16,16 @@
 //   type Order = ...（四个变体：pending/paid/shipped/cancelled，amount: number）
 //   function isOrderStatus(x: unknown): x is OrderStatus { ... }
 //   —— 你第一次亲手写类型谓词：return 里写它认的证据（字面量比较）
+type OrderStatus = "pending" | "paid" | "shipped" | "cancelled";
+type Order = 
+  | { status: "pending"; amount: number }
+  | { status: "paid"; amount: number; paidAt: string }
+  | { status: "shipped"; amount: number; paidAt: string; trackingNo: string }
+  | { status: "cancelled"; amount: number; reason: string };
 
+function isOrderStatus(x: unknown): x is OrderStatus {
+    return x === "pending" || x === "paid" || x === "shipped" || x === "cancelled";
+}
 // TODO 2) 解析器（守门员风格：每层不过就 return undefined）：
 //   function parseOrder(data: unknown): Order | undefined
 //   逐层顺序（漏斗的形状）：
@@ -30,6 +39,38 @@
 //        （每项都是 "xx" in data + typeof 是 "string"）
 //     7. 全过之后：return { status: ..., amount: ... } —— 造一个全新的、类型属实的对象
 //   提示："status" in data 之后才能点 data.status（类型 unknown）；isOrderStatus 一过它就是 OrderStatus
+function parseOrder(data: unknown): Order | undefined {
+    if (typeof data !== "object" || data === null) {
+        return undefined;
+    } else if( "status" in data && isOrderStatus(data.status)){
+        if("amount" in data && typeof data.amount === "string") {
+            const amountText = data.amount.trim();
+            if(amountText === "") {
+                return undefined;
+            }
+            const amount = Number(amountText);
+            if(!Number.isFinite(amount)) {
+                return undefined;
+            } else {
+                if(data.status === "pending") return { status: "pending", amount };
+                else if(data.status === "paid" && "paidAt" in data && typeof data.paidAt === "string") {
+                    return { status: "paid", amount, paidAt: data.paidAt };
+                } else if(data.status === "shipped" && "paidAt" in data && typeof data.paidAt === "string" && "trackingNo" in data && typeof data.trackingNo === "string") {
+                    return { status: "shipped", amount, paidAt: data.paidAt, trackingNo: data.trackingNo };
+                } else if(data.status === "cancelled" && "reason" in data && typeof data.reason === "string") {
+                    return { status: "cancelled", amount, reason: data.reason };
+                } else {
+                    return undefined;
+                }
+            }
+        } else {
+            return undefined;   
+        }
+    } else {
+        return undefined;
+    }
+}
+
 
 // ======================= 数据与演示区（TODO 3）=======================
 // 好数据：结构齐全，amount 是字符串——解析成功后它应该是数字 128.5
@@ -46,3 +87,7 @@ const bad3: unknown = JSON.parse('{"status":"pending","amount":""}');        // 
 //   - 学有余力：再造一条 pending / shipped / cancelled 的合法数据各验一遍；
 //     再喂 JSON.parse('不是JSON') 试试——它直接 throw，这条错误路径第 6 课正式处理，今天知道即可
 // 完成判据：npx tsc --noEmit 沉默 + 好数据 amount 是数字 + 三组坏数据全被拒 + 全程没写 as
+console.log(parseOrder(goodPaid) ?? "已拒绝");
+console.log(parseOrder(bad1) ?? "已拒绝");
+console.log(parseOrder(bad2) ?? "已拒绝");
+console.log(parseOrder(bad3) ?? "已拒绝");
