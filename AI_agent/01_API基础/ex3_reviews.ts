@@ -66,9 +66,13 @@ async function main() {
       "服务态度好，但价格偏高gaogaogaoago",  // 正面和负面因素并存
     ];
     for (const review of reviews) {
-        const result = await classifyWithFallback(review);
-        console.log(`评论: ${review}`);
-        console.log(`分析结果: ${JSON.stringify(result)}`);
+        try {
+            const result = await classify(review);
+            console.log(`评论: ${review}`);
+            console.log(`分析结果: ${JSON.stringify(result)}`);
+        }catch (error) {    
+            throw new Error(`处理评论时出错: ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
 }
 
