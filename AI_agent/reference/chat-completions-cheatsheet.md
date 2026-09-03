@@ -82,7 +82,7 @@
 **多轮对话要不要把 reasoning_content 传回去？**
 
 - **不带工具调用**：无需回传；传了也会被忽略（DeepSeek 官方明示）。所以把整个 message 对象 push 回 messages 无害，放心做任务 2。
-- **带工具调用**：DeepSeek / GLM 都要求**完整回传**历史轮次的 reasoning_content，漏传直接 400——第 3 课的主角，先混个脸熟。
+- **带工具调用**：DeepSeek / GLM 官方都要求**完整回传**历史轮次的 reasoning_content（智谱原文"必须显式保留……并在返回工具结果时一并返回"，重排/修改会降效果、影响缓存命中）。实测（2026-09-03，DeepSeek v4-flash）漏传**未报 400** 且仍答对——但别依赖：规矩是原样 append 整个 message 对象。详见 §8。
 
 **两个坑**：
 
@@ -100,7 +100,7 @@
 | `stop` | 自然说完 | 正常处理 |
 | `length` | 被 `max_tokens` 截断 | 要完整回答就调大 max_tokens 或精简输入 |
 | `content_filter` | 触发内容安全策略 | 改写输入；换问法 |
-| `tool_calls` | 模型要调工具（第 3 课的主角） | 先欠着，第 3 课见 |
+| `tool_calls` | 模型要调工具 | 按 §8 走：解析 arguments → 你的代码执行 → role:"tool" 回传 → 再请求 |
 
 ---
 
@@ -157,6 +157,55 @@ usage = data["usage"]                             # ← 记账
 （OpenAI 另支持最严格的 `json_schema` 严格模式，本次未逐条核实，用得上时以[官方文档](https://platform.openai.com/docs/guides/structured-outputs)为准。）
 
 **通用纪律**（与供应商无关）：`response_format` 只保证"整体是个合法 JSON"，**不保证字段齐、类型对**——本地解析 + 字段校验 + 兜底（重试 / 报错回传修复）永远省不掉。兜底的完整阶梯见[第 2 课课件 §2.4](../lessons/0002-structured-output.md)。
+
+---
+
+## §8 Function Calling（tools / tool_calls）
+
+> 2026-09-03 依据智谱官方文档核实（[工具调用](https://docs.bigmodel.cn/cn/guide/capabilities/function-calling)、[思考模式](https://docs.bigmodel.cn/cn/guide/capabilities/thinking-mode)）+ DeepSeek v4-flash 实测（导师预检）。第 3 课主线。
+
+**一次完整往返 = 两次 API 调用 + 一次你的代码执行**（细节见[第 3 课课件 §2](../lessons/0003-function-calling.md)）。
+
+请求（`tools` 数组，OpenAI 兼容，`parameters` 为 JSON Schema 子集）：
+
+```jsonc
+"tools": [{
+  "type": "function",
+  "function": {
+    "name": "get_weather",
+    "description": "获取指定城市的当前天气信息",
+    "parameters": {
+      "type": "object",
+      "properties": { "city": { "type": "string", "description": "城市名称" } },
+      "required": ["city"]
+    }
+  }
+}]
+```
+
+响应（模型决定调工具时）：`finish_reason: "tool_calls"`；`message.content` 为空串或 null；`message.tool_calls` 数组（可能多条）：
+
+```jsonc
+"tool_calls": [{
+  "id": "call_00_xxx",                          // ← 工单号，回传结果时 tool_call_id 靠它对号
+  "type": "function",
+  "function": { "name": "get_weather", "arguments": "{\"city\": \"北京\"}" }   // ← arguments 是 JSON 格式字符串
+}]
+```
+
+回传（第二次请求前，按顺序 append 进 messages）：
+
+1. 模型那条带 tool_calls 的 assistant 消息，**整个对象原样** append（含 reasoning_content——手工重拼会丢字段）
+2. 每张申请单执行后 append `{ "role": "tool", "tool_call_id": <id>, "content": "<结果字符串，报错也是它>" }`
+3. 再发请求 → 模型总结，`finish_reason: "stop"`
+
+| 供应商 | tool_choice | parallel_tool_calls | 备注 |
+|---|---|---|---|
+| 智谱 GLM | **默认且仅支持 `auto`**（官方明文） | 无此参数；一条响应可含多条 tool_calls | 带工具调用时官方要求 reasoning_content 必须显式保留、一并返回；官方示例自带 eval 弱防护，别照抄——白名单自己写严 |
+| DeepSeek | 支持 auto 等模式 | 支持 | 文档要求回传 reasoning_content；实测（v4-flash, 2026-09-03）漏传未报 400 仍答对 |
+| Qwen（百炼） | 未逐条核实 | 未逐条核实 | 用前查[官方文档](https://help.aliyun.com/zh/model-studio/function-calling) |
+
+**通用纪律**（与供应商无关）：arguments 是字符串，`JSON.parse` 后**仍需字段校验**——模型会递非法参数（`hello*3`）、会编不存在的字段。工具执行报错不裸崩：报错文本作为 tool 消息回传（第 2 课"回传修复"的直系应用）。
 
 ---
 

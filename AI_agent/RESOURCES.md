@@ -23,6 +23,8 @@
 
 - [Docs: 智谱开放平台 HTTP API 调用指南](https://docs.bigmodel.cn/cn/guide/develop/http/introduction)
   base_url `https://open.bigmodel.cn/api/paas/v4`，入门模型 `glm-5.3`，含 curl/Python(requests)/JS/Java 示例与错误码说明。用于：第 1 课学前阅读（messages 参数结构）。
+- [Docs: 智谱 · 工具调用（Function Calling）](https://docs.bigmodel.cn/cn/guide/capabilities/function-calling)
+  tools 请求格式、tool_calls 响应结构、role:"tool" 回传流程的官方权威来源（含工具设计最佳实践）。用于：第 3 次课学前阅读、第 4 次课接口细节查询；配套速查表 §8。
 - [Docs: DeepSeek API 文档](https://api-docs.deepseek.com/)
   base_url `https://api.deepseek.com`，入门模型 `deepseek-v4-flash` / `deepseek-v4-pro`，key 在 platform.deepseek.com/api_keys。用于：第 1 课学前阅读（备选供应商）。
 - [Docs: 阿里云百炼 OpenAI 兼容接口](https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope)

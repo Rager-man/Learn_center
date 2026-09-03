@@ -18,7 +18,7 @@
 
 - **第 1 课 ✓ 结业（2026-09-02）**：三任务全过（ex1 逐字段过响应、ex2 多轮机器人、任务 3 token 观察在 ex2 内完成），复盘三题通过（Q1 于同日重述通过）。学员先于 2026-08-30 晚完成过 Python 版练习（已归档 `01_API基础/archive/`），TS 版重做后结业。
 - **第 2 课 ✓ 结业（2026-09-03）**：结构化输出（智谱主线）。两任务完成：ex3 招式一二合体 + 三级兜底（parseReview / BadJSON / 原样重试 / 回传修复）。正式压测 9/9 一次成功零裸崩（兜底未触发——json_object 之下失败罕见）；复盘题 2 一次过；复盘题 1 经三轮补判**同日销案**（诱导补测 5 种失败对号阶梯，第三轮两句结论——预处理边界与字段校验——通过）。判卷发现与伏笔见下方课记录。
-- **第 3 课 未开工**：Function Calling。测试集 `02_ToolUse/ex4_questions.py` 已备（12 题，每题 expect + note，还是 Python——开课时按"课件版式规范"TS 化为预建骨架）。课件未制作。
+- **第 3 课 开课（2026-09-03）**：Function Calling。课件 + `02_ToolUse/ex4_tool_call.ts` 预建骨架就绪（含 12 题测试集 TS 化，原 ex4_questions.py 已删、git 留底）。开场三件事已编进 §0：快问快答（5 种失败对号阶梯）、两笔欠账（ex3 第 5 级放弃策略 + ex2 api_call 改造）开工前先还、zshrc 旧 env 提醒。待学员练习与判卷。
 
 ## 第 1 课记录（2026-09-02 结业）
 
@@ -87,7 +87,16 @@
 - ex2 `api_call` 副作用改造（第 2 课 §5 布置）**仍欠**，第 3 课 agent loop 前提醒。
 - 类型漂移裸 parse 拦不住 = 字段校验 / zod（与 TS 线第 6 课 zod 呼应）。
 
-**待办**：第 3 课课件制作（`02_ToolUse/ex4_questions.py` TS 化 + 骨架预建）→ 开课（开场回收：诱导失败对号阶梯快问快答；第 5 级放弃策略改造与 ex2 `api_call` 改造完成度检查）。
+**待办**：~~第 3 课课件制作 → 开课~~（2026-09-03 完成，见第 3 课记录）。开场回收两件事（快问快答 + 欠账检查）已编进第 3 课 §0；两笔改造（ex3 第 5 级、ex2 api_call）转为学员开工前置作业，判卷时先查完成度。
+
+## 第 3 课记录（2026-09-03 开课）
+
+- 课件 `lessons/0003-function-calling.md` + 骨架 `02_ToolUse/ex4_tool_call.ts`（单文件；12 题测试集 TS 化自 ex4_questions.py 原样迁入，.py 已删）。预建：升级版消息类型（AssistantMsg 含 tool_calls/reasoning_content、ToolMsg 含 tool_call_id，union 类型）、chatWithTools 管路（返回完整 message + finish_reason，不碰 messages——正是 ex2 改造姿势的示范）；TODO 1–5：schema description / calculator 三道关 / 单次五步往返 / time 工具+注册表 / while<4 小循环跑 12 题。
+- **导师预检**（2026-09-03，DeepSeek 线探针，跑完即删）：往返全通（finish_reason "tool_calls" → content 空串 → arguments JSON 字符串 → 回传 → "stop" + 正确答案）；**意外发现：漏传 reasoning_content 未报 400、仍答对**——速查表 §3.1 旧说法"漏传直接 400"已按实测修正（官方警告的是效果下降/缓存失效），课件 §2.5 以折叠 tip 收录此实验。
+- 事实核实（2026-09-03）：智谱工具调用文档（tools 格式 / tool_choice 仅 auto / 回传顺序 / reasoning_content"必须显式保留"）+ 思考模式文档。速查表新增 §8、§4 tool_calls 行同步。
+- 环境发现：学员 `~/.zshrc` 仍是 DeepSeek 三件套旧值（每开新终端智谱 env 失效）——已写进课件 §0 提醒（建议更新 zshrc）。
+- 设计取舍：练习坚持单文件（根 package.json `"type":"module"` + NodeNext，跨 .ts import 需 `.js` 后缀怪招——本课不引 ESM 支线）；calculator 三道关（白名单 / ^→** 翻译 / 除零显式抛错）是 JS 特色坑，2^53 精度边界留 §5 学有余力（BigInt）。
+- 待观察：两笔欠账完成度（判卷先查）；12 题观察表的归因质量（"描述没写清"vs"模型错了"——第 5 课核心素材）。
 
 ## 课件演化备忘（压缩存档）
 
@@ -118,7 +127,7 @@
 - `00_20小时速通计划.md`（10 次课总计划，练习 checkbox 进度的唯一所在地）/ `00_学习路线图.md`（4–6 个月长期路线，与速通共存）
 - `NOTES.md`（本文件）/ `MISSION.md`（学习使命）/ `RESOURCES.md`（精选资源，按课次标注）
 - `lessons/`（课件正文）；`reference/`（chat-completions 速查表、ts-debug-repl 速查表，持续核实维护）
-- `01_API基础/`（第 1–2 课练习；`archive/` 存 Python 时代旧练习）；`02_ToolUse/`（第 3–6 课练习，含待 TS 化的 ex4_questions.py）
+- `01_API基础/`（第 1–2 课练习；`archive/` 存 Python 时代旧练习）；`02_ToolUse/`（第 3–6 课练习；ex4_tool_call.ts 骨架 + 12 题测试集已就位）
 - 03/04/05 代码目录按计划"上课时创建"；`tsconfig.json`（课件自用，tsc 安检）
 
 ## 待确认
