@@ -386,5 +386,5 @@ function parseOrder(data: unknown): Order | undefined {
 
 ---
 
-*上一课：[第 3 课 · 可空与窄化](0003-narrowing.md) ｜ 下一课：第 5 课 · 异步（完成本课后解锁）*
+*上一课：[第 3 课 · 可空与窄化](0003-narrowing.md) ｜ 下一课：[第 5 课 · 异步](0005-async.md)*
 *TypeScript 开发 · 20 小时速通 · 总计划见 [00_20小时速通计划.md](../00_20小时速通计划.md)*
