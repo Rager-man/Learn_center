@@ -338,5 +338,5 @@ Python 对照：`d.get(k)` 返回 None——你在 Python 里从不写 `d[k].upp
 
 ---
 
-*上一课：[第 2 课 · 用类型建模数据](0002-data-modeling.md) ｜ 下一课：第 4 课 · 判别联合（完成本课后解锁）*
+*上一课：[第 2 课 · 用类型建模数据](0002-data-modeling.md) ｜ 下一课：[第 4 课 · 判别联合](0004-discriminated-unions.md)*
 *TypeScript 开发 · 20 小时速通 · 总计划见 [00_20小时速通计划.md](../00_20小时速通计划.md)*
