@@ -1,6 +1,6 @@
 // 01_API基础/ex3_reviews.ts —— 骨架（第 2 课 · 任务 1：评论分类器 · 任务 2：加兜底）✅ 2026-09-03 完成
-// 用法：npx tsx 01_API基础/ex3_reviews.ts   （当前 = 任务 2 三级兜底版：解析失败 → 原样重试一次
-//       → 回传修复；三级全败仍会上抛——第 5 级"放弃策略"留作改造，见 NOTES 判卷记录）
+// 用法：npx tsx 01_API基础/ex3_reviews.ts   （当前 = 任务 2 三级兜底 + 第 5 级放弃策略版（2026-09-04 还债）：
+//       解析失败 → 原样重试一次 → 回传修复；三级全败返回 null + 打日志，main 继续下一条——零裸崩）
 //
 // 剧本：商品评论 → {"情感","类别","置信度"}。任务 1 已完成（Schema 进 prompt + response_format
 //       + temperature 0；压测评论 9 条，其中 3 条刁钻题为学员自加）。
@@ -67,11 +67,17 @@ async function main() {
     ];
     for (const review of reviews) {
         try {
-            const result = await classify(review);
+            const result = await classifyWithFallback(review);
+            if (result === null) {
+                const label = review.length > 30 ? review.slice(0, 30) + "…" : review;
+                console.log(`评论: ${label} → 三级兜底全败，明确失败，跳过继续`);
+                continue;
+            }
             console.log(`评论: ${review}`);
             console.log(`分析结果: ${JSON.stringify(result)}`);
-        }catch (error) {    
-            throw new Error(`处理评论时出错: ${error instanceof Error ? error.message : String(error)}`);
+        } catch (error) {
+            // 第 5 级：单条故障只记日志、循环继续——网络断/超时这类非解析错误也在这里兜住，不许裸崩
+            console.error(`处理失败，跳过该条继续: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }
@@ -111,7 +117,7 @@ class BadJSON extends Error {
 //   - 解析失败 → 原样重试一次（temperature 已是 0 还失败，说明真不是抖动）
 //   - 仍失败 → 回传修复：坏输出以 assistant 身份进历史 + 报错作为新 user 消息
 //     （messages 拼法见课文 §3 任务 2——这正是第 1 课练的多轮对话结构）
-async function classifyWithFallback(review: string): Promise<Review> {
+async function classifyWithFallback(review: string): Promise<Review | null> {
     const messages: Message[] = [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: review },
@@ -132,7 +138,16 @@ async function classifyWithFallback(review: string): Promise<Review> {
                     messages.push({ role: "assistant", content: error_again.raw });
                     messages.push({ role: "user", content: `你上一条输出不是合法JSON，JSON.parse 报错：${error_again.message}。重新输出，只要那个JSON。` });
                     const content_fixed = await chat(messages);
-                    return parseReview(content_fixed);
+                    try {
+                        return parseReview(content_fixed);
+                    } catch (error_fixed) {
+                        if (error_fixed instanceof BadJSON) {
+                            // 第 5 级放弃策略：三级全败 → 返回 null 这个"明确的失败结果"，不裸崩
+                            console.error(`三级兜底全败，放弃该条：${error_fixed.message}`);
+                            return null;
+                        }
+                        throw error_fixed;
+                    }
                 } else {
                     throw error_again; // 其他错误直接抛出
                 }
@@ -159,5 +174,9 @@ async function classifyWithFallback(review: string): Promise<Review> {
 //    · 类型漂移（置信度 "95%" 字符串）      → 裸 parse"成功"但字段类型错——解析成功 ≠ 结果可用，
 //      这类只有字段校验拦得住（§5 学有余力）
 // 3) 判卷注：三级兜底全败时 BadJSON 会抛出 main 循环（第 5 级"放弃策略"未落地）——留作改造。
+//    → 2026-09-04 已还：classifyWithFallback 改 Promise<Review | null>，三级全败打日志返回 null；
+//    main 改调 classifyWithFallback（修正前一日误接无兜底 classify 的回归），catch 只记日志继续。
+//    冒烟双证：假 URL 下 9 条逐条记错、exit 0（catch 路径）；stub fetch 诱导三级全败，9 条全走
+//    null 放弃路径、exit 0（临时探针，跑完已删）。tsc 沉默。
 
 
