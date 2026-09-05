@@ -41,14 +41,14 @@ function fetchUser(): Promise<User> {
 // console.log(user3.name);
 
 // ======================= 观察留痕（判卷证据，逐段写） =======================
-// A（点属性）—— tsc 现象：
-// A（点属性）—— tsx 现象：
-// B（直接打印）—— tsc 现象：
-// B（直接打印）—— tsx 现象：
-// C（有 await）—— 现象：
+// A（点属性）—— tsc 现象：error TS2339: Property 'name' does not exist on type 'Promise<User>'.
+// A（点属性）—— tsx 现象：undefined
+// B（直接打印）—— tsc 现象：正常编译通过
+// B（直接打印）—— tsx 现象：打印 Promise { <pending> }
+// C（有 await）—— 现象： 打印小明
 //
 // TODO 4) 用一句话回答：A 段在 tsx 下打出的那个值，和第 1 课 JSON.parse 实验
 //   里"data.nama 打出 undefined"是同一类事故吗？为什么？（答案写在这）
-//
+//不是同一类，JSON.parse实验里的data.nama是未定义的属性访问，而A段的user.name是对Promise对象的属性访问，Promise对象没有name属性，所以返回undefined。
 
 // 完成判据：三段都亲手跑过 + 留痕写全 + 实验代码全部注释回去后 npx tsc --noEmit 沉默

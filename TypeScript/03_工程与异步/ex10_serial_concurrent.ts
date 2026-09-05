@@ -8,37 +8,63 @@
 // 规则：全程禁 as / ！；命名 camelCase；计时用 Date.now()。
 
 // TODO 1) 预测先行（没跑之前写，写完不许改）：把你的预测写在这两行注释里——
-//   串行版预期总耗时：约 ____ ms；并发版预期总耗时：约 ____ ms
+//   串行版预期总耗时：约 _1600_ ms；并发版预期总耗时：约 _800_ ms
 //
 
 // TODO 2) 写 sleep：把 setTimeout 包装成 Promise——今天的地基，就一行
 //   function sleep(ms: number): Promise<void> { ... }
 //   提示：new Promise((resolve) => { setTimeout(?, ?) })  —— setTimeout 的第一个参数
 //   就是"时间到了该干的事"，把它交给 resolve
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 
 // TODO 3) 三个 mock 任务（模拟三次网络请求，各自的时长不同）：
 //   任务A 300ms、任务B 500ms、任务C 800ms——每个都 async，开始时打印"[名字] 开始"，
 //   结束时打印"[名字] 结束"。三个任务写成三个独立的函数（taskA/taskB/taskC），
 //   别在函数里 console.log 耗时——耗时由外面的计时器统一算
 
+async function task(name: string, ms: number): Promise<void> {
+    console.log(`${name} 开始`);
+    await sleep(ms);
+    console.log(`${name} 结束`);
+}
+
 // TODO 4) 串行版：t0 = Date.now() 起，三个任务一个 await 完再 await 下一个，
 //   打印"串行总耗时：xxx ms"
-
+console.log("======================== 串行版 =======================");
+const t1 = Date.now();
+await task("任务A", 300);
+await task("任务B", 500);
+await task("任务C", 800);
+console.log(`串行总耗时：${Date.now() - t1} ms`);
 // TODO 5) 并发版：三个任务**先全部创建**（存进三个变量），再 Promise.all 一起 await，
 //   打印"并发总耗时：xxx ms"
 //   注意写法顺序：const pa = taskA(); const pb = taskB(); const pc = taskC();
 //   然后 await Promise.all([pa, pb, pc])——为什么必须先创建再 all？跑完思考题你就懂了
-
+console.log("======================== 并发版 =======================");
+const t0 = Date.now();
+const pa = task("任务A", 300);
+const pb = task("任务B", 500);
+const pc = task("任务C", 800);
+await Promise.all([pa, pb, pc]);
+console.log(`并发总耗时：${Date.now() - t0} ms`);
 // TODO 6) 思考题（先预测再跑）：不开 all——
 //   const slow = taskC();      // 创建 800ms 的任务
 //   await sleep(200);          // 先去干等 200ms
 //   await slow;                // 再等 slow
-//   从创建到 await 完，总共过了多少 ms？____
-//   如果 slow 是"被 await 时才开始跑"，总耗时该是多少？____
+//   从创建到 await 完，总共过了多少 ms？_800_
+//   如果 slow 是"被 await 时才开始跑"，总耗时该是多少？_1000___
 //   把两个数字和一句结论写进下面的留痕：
-
+const t2 = Date.now();
+const slow = task("任务C", 800);
+await sleep(200);
+await slow;
+console.log(`思考题总耗时：${Date.now() - t2} ms`);
 // 思考题留痕：
-//
+// Promise 是在创建时就开始跑的，而不是在 await 时才开始跑
 
 // 完成判据：串行 ≈ 1600、并发 ≈ 800（±50ms 都算达标）；思考题的实测数字 + 一句结论
 //   （结论就一句话：Promise 是什么时候开始跑的？）

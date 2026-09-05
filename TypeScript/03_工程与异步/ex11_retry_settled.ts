@@ -19,7 +19,16 @@
 //   - Math.random() < failRate 就 throw new Error(name + " 服务超时")
 //   - 否则返回 name + " 成功返回的数据"
 //   （failRate: 0.5 = 一半概率失败）
-
+async function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+async function flaky(name: string, failRate: number): Promise<string> {
+    await sleep(100);
+    if (Math.random() < failRate) {
+        throw new Error(name + " 服务超时");
+    }
+    return name + " 成功返回的数据";
+}
 // ======================= 第二幕：retry =======================
 // TODO 2) 写 retry——签名照抄：
 //   async function retry<T>(fn: () => Promise<T>, times: number): Promise<T>
@@ -27,7 +36,17 @@
 //   提示：for 循环 attempt 从 1 到 times；try 里 return await fn()；catch 里记下错误
 //   继续下一轮；循环走完还没 return，说明全败了——throw 记下的那个错误
 //   （错误变量注解写 unknown，throw 一个 unknown 变量在 TS 里是允许的）
-
+async function retry<T>(fn: () => Promise<T>, times: number): Promise<T> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= times; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+        }
+    }
+    throw lastError;
+}
 // TODO 3) 验证 retry 真的在重试：
 //   包一个带计数器的 fn —— const countingFlaky = () => flaky("服务A", 0.5) 之前，
 //   先在外面 let attempts = 0，箭头函数里 attempts++ 并打印"第 X 次尝试"。
@@ -35,23 +54,62 @@
 //   再跑一个必败版验证边界：await retry(() => flaky("坏服务", 1), 3) —— failRate 1
 //   必败，retry 该在第 3 次尝试后把错误抛出来；用 try/catch 接住它，
 //   打印"3 次全败，最后错误：xxx"（times = 3 的含义是"总共试 3 次"，不是"重试 3 次+首次"）
+let attempts = 0;
+const countingFlaky = () => {
+    attempts++;
+    console.log(`第 ${attempts} 次尝试`);
+    return flaky("服务A", 0.5);
+};
 
+try {
+    const result = await retry(countingFlaky, 4);
+    console.log(`成功版结果：${result}`);
+} catch (error) {
+    console.error(`成功版失败：${error}`);
+}
+
+// 必败版：failRate 1 = 必败；times 3 = 总共试 3 次（不是"重试 3 次 + 首次"）
+let badAttempts = 0;
+try {
+    await retry(() => {
+        badAttempts++;
+        return flaky("坏服务", 1);
+    }, 3);
+} catch (error) {
+    console.log(`共尝试 ${badAttempts} 次，全败。最后错误：${error instanceof Error ? error.message : String(error)}`);
+}
 // ======================= 第三幕：allSettled 报告 =======================
 // TODO 4) 造 5 个任务丢进 allSettled：
-//   const results = await Promise.allSettled([
-//     retry(() => flaky("服务A", 0.2), 3),
-//     retry(() => flaky("服务B", 0.5), 3),
-//     retry(() => flaky("服务C", 0.8), 3),
-//     retry(() => flaky("服务D", 0.5), 3),
-//     retry(() => flaky("服务E", 0.5), 3),
-//   ]);
-//
+const results = await Promise.allSettled([
+    retry(() => flaky("服务A", 0.2), 3),
+    retry(() => flaky("服务B", 0.5), 3),
+    retry(() => flaky("服务C", 0.8), 3),
+    retry(() => flaky("服务D", 0.5), 3),
+    retry(() => flaky("服务E", 0.5), 3),
+]);
+
 // TODO 5) 出报告（判卷眼之一：用 r.status 窄化——第 4 课的判别联合，今天在官方 API 里现身）：
 //   先打印总账："5 个任务：成功 X 个，失败 Y 个"
 //   再逐条打印：成功 → "✓ 服务名：值"；失败 → "✗ 服务名：理由"
 //   提示：results 的类型是 PromiseSettledResult<string>[]——foreach 循环里
 //   if (r.status === "fulfilled") 的分支里 r 才有 .value，else 分支里才有 .reason
 //   （窄化谁教你的？第 4 课。它就是官方写好的判别联合：status 是判别字段）
+if (results.length !== 5) {
+    console.error("任务数量不对");
+} else {
+    const successCount = results.filter(r => r.status === "fulfilled").length;
+    const failureCount = results.filter(r => r.status === "rejected").length;
+    console.log(`5 个任务：成功 ${successCount} 个，失败 ${failureCount} 个`);
+    results.forEach((r, index) => {
+        if (r.status === "fulfilled") {
+            console.log(`✓ 服务${String.fromCharCode(65 + index)}：${r.value}`);
+        } else {
+            const reason = r.reason instanceof Error ? r.reason.message : String(r.reason);
+            console.log(`✗ 服务${String.fromCharCode(65 + index)}：${reason}`);
+        }
+    });
+}   
+
 
 // 完成判据：tsc 沉默；成功版/必败版 retry 都有演示输出；报告总账 + 明细齐全；
 //   失败理由的打印经过 instanceof Error 窄化（不许裸点 any 的 .message）
