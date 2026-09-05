@@ -338,5 +338,5 @@ type PromiseSettledResult<T> =
 
 ---
 
-*上一课：[第 4 课 · 判别联合](0004-discriminated-unions.md) ｜ 下一课：第 6 课 · 边界校验（完成本课后解锁）*
+*上一课：[第 4 课 · 判别联合](0004-discriminated-unions.md) ｜ 下一课：[第 6 课 · 边界校验](0006-boundary-validation.md)*
 *TypeScript 开发 · 20 小时速通 · 总计划见 [00_20小时速通计划.md](../00_20小时速通计划.md)*

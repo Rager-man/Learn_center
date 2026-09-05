@@ -14,6 +14,7 @@
 - **第 3 课 ✓ 结业（2026-09-03）**：两任务全过（必改 A/B/C 两轮修净；两处静默坑真修——`firstScore(小美)` 实测打出 0、ex6 轮数确定性验证乱敲不计轮），复盘三题通过（题 1、2 直接过；题 3 与 typeof 补版**补讲后一次确认**）。
 - **第 4 课 ✓ 结业（2026-09-03）**：两任务全过（判卷眼坏 2 首轮失守——ex8 用 `{...data, amount} as Order` 缝口、第 6 层逐支检查整层缺失；整改清单 5 条一轮修净）。复盘三题通过（题 3 直接过；题 1、2 补讲后一次确认）。
 - **第 5 课 ✓ 结业（2026-09-05）**：三任务全过（ex11 必败版演示首轮缺失——整改 3 条一轮修净；复盘三题通过：题 2 首答直过，题 1 后半问与题 3 机制补讲 + 选择题一次确认）。详见下方第 5 课记录。
+- **第 6 课 ▶ 已开工（2026-09-05）**：课文与骨架已就绪（0006-boundary-validation.md；ex12 天气 CLI / ex13 边界清单审计台；zod 4.5.4 已装入 dependencies——第 8 课复盘题 1 的现成答案埋点）。判卷要点：三条 fetch 错误路径 + zod 第四关的打印必须彼此分得清（盯"指令漏段"前科——ex11 必败版样本，课件 §0 已加"丑话"警告）；类型必须全部来自 z.infer、不许手写数据 interface；"一次与之后"概念题照旧选择题拆解；ex13 重点看 999 补前走网络、补后本地拦的对比留痕。技术备忘（备课探针实测，探针已删）：坏主机名 → reject `TypeError: fetch failed`（真凶在 e.cause.code=ENOTFOUND）；latitude=999 → 正常 resolve、res.ok=false、status=400、body {"error":true,"reason":"Latitude must be in range of -90 to 90°. Given: 999.0."}；200+HTML → json() 抛 `SyntaxError: Unexpected token '<'`（栈里赫然 at JSON.parse）；res.json() 返回 any 的编译器证据 TS2322（Type 'any' is not assignable to type 'never'）；safeParse 失败 issues[0].message="Invalid input: expected array, received undefined"、path=["daily","temperature_2m_max"]；北京 39.9 116.4 实测今 32.9/22.3、明 31.2/22.1。伏笔埋点：retry 的 `<T>` 第 7 课转正（z.infer<typeof schema> 里的 typeof 已是泛型应用）；parseCoords 复制进 ex12 的重复——第 8 课拆模块时消灭；process.env/文件进口第 9 课待办 CLI 全用上；open-meteo 400 的 reason 句子 = parseCoords 范围规则的出处。
 
 ## 第 1 课记录
 
