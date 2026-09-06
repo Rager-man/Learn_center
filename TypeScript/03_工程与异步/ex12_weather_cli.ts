@@ -24,6 +24,29 @@ const url = (lat: number, lon: number): string =>
 // ======================= 进口 ①：argv（先裸取——任务 2 回来清算） =======================
 // TODO 1) process.argv.slice(2) 取出纬度、经度两个参数，Number() 转成数字。
 //   校验先不做——ex13 会回来统一清算这个进口（伏笔明示：先按第 1 课 BMI 的老办法裸取）。
+function parseCoords(args: string[]): [number, number]{
+  if(args.length !== 2){
+    console.log("参数数量非法，只允许输入两个参数");
+    process.exit(1);
+  } 
+  const lat = Number(args[0]);
+  const lon = Number(args[1]);
+
+  if(Number.isNaN(lat) || Number.isNaN(lon)) {
+    console.log("参数非法，传入参数要求均为数字");
+    process.exit(1);
+  } 
+
+  if ((Math.abs(lat) <= 90) && (Math.abs(lon) <= 180)) {
+    console.log(`坐标合法:${lat}, ${lon}`);
+    return [lat, lon];
+  } else {
+    console.error("纬度需在-90~90, 经度需在-180~180");
+    process.exit(1);
+  }
+};
+
+const [lat, lon] = parseCoords(process.argv.slice(2));
 
 // ======================= 进口 ②：fetch + 三条错误路径 =======================
 // TODO 2) 顶层 await，一个 try/catch 包住 fetch 和 res.json()（§2.2 的形状照用）：
@@ -31,16 +54,46 @@ const url = (lat: number, lon: number): string =>
 //   - catch 接住路径 1（fetch reject）和路径 3（json() 抛错）：
 //     instanceof Error 窄化后打印 err.message（打印要分得清是哪条路径）
 // TODO 3) const raw: unknown = await res.json()——注解 unknown，它是 any（第三笔旧账，今天结清）
+try {
+  const res = await fetch(url(lat, lon));
+  if (!res.ok) {
+    console.error(`路径 2：fetch 成功但返回不 ok，status 是：${res.status}`);
+    process.exit(1);
+  }
+  const raw: unknown = await res.json();
 
 // ======================= 第四关：zod schema =======================
 // TODO 4) 照 §2.3 写 weatherSchema：外层一个字段 daily；daily 里三个数组——
 //   time（z.array(z.string())）、temperature_2m_max / temperature_2m_min（z.array(z.number())）
+  const weatherSchema = z.object({
+    daily: z.object({
+      time: z.array(z.string()),
+      temperature_2m_max: z.array(z.number()),
+      temperature_2m_min: z.array(z.number()),
+    }),
+  });
 // TODO 5) type Weather = z.infer<typeof weatherSchema>——今天的类型全部从这来，不许手写数据 interface
-
+  type Weather = z.infer<typeof weatherSchema>;
 // ======================= 校验 + 输出 =======================
 // TODO 6) weatherSchema.safeParse(raw)：
 //   - 失败分支：打印 r.error.issues[0].message 和 r.error.issues[0].path.join(".")，然后 process.exit(1)
 //   - 成功分支：从 r.data 取今明两天，逐天打印 日期、最高、最低（r.data.daily.time[0] 是今天）
+  const r = weatherSchema.safeParse(raw);
+  if(r.success) {
+    for(let i=0; i < r.data.daily.time.length; i++) {
+      console.log(`${r.data.daily.time[i]}：最高 ${r.data.daily.temperature_2m_max[i]}°C，最低 ${r.data.daily.temperature_2m_min[i]}°C`);
+    }
+  } else {
+    console.log(r.error.issues[0].message);
+    console.log(r.error.issues[0].path.join("."));
+    process.exit(1);
+  }
+} catch (err) {
+  if( err instanceof Error) {
+    console.error(`路径 1 或 3：fetch 或 json() 抛错，message 是：${err.message}`);
+    process.exit(1);
+  }
+}
 
 // ======================= 错误路径实测（判卷重点，一段不能漏） =======================
 // TODO 7) 三连触发，每条写清"哪一关拦下、打出什么"，留痕写在下面：
@@ -50,9 +103,9 @@ const url = (lat: number, lon: number): string =>
 //   实测完：全部改回正常版，再跑一遍 39.9 116.4 确认健康。
 
 // ======================= 观察留痕（TODO 7 写这，判卷证据） =======================
-// ①坏主机名（路径 1）——拦截关卡：…；打出：…
-// ②纬度 999（路径 2）——拦截关卡：…；status 是：…
-// ③schema 改错（第四关）——拦截关卡：…；path 报的是：…
-
+// ①坏主机名（路径 1）——拦截关卡：网络错误；打出：路径 1 或 3：fetch 或 json() 抛错，message 是：fetch failed
+// ②纬度 999（路径 2）——拦截关卡：非2xx；status 是：fetch 成功但返回不 ok，status 是：400
+// ③schema 改错（第四关）——拦截关卡：zod结构校验错误；path 报的是:Invalid input: expected array, received undefined. daily.temperature_2m_MAX
+// ④边界放行复跑（<= 修正后）—— 90 116.4：放行，API 返回数据；39.9 180：放行，API 接受
 // 完成判据：正常输入出今明温度；三连留痕齐全且分得清关卡；safeParse 失败信息带 message 和 path；
 //   类型全部来自 z.infer；实测后代码已改回，npx tsc --noEmit 沉默
