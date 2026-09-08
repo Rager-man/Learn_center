@@ -349,5 +349,5 @@ Object.assign<T extends {}, U>(target: T, source: U): T & U;
 
 ---
 
-*上一课：[第 6 课 · 边界校验](0006-boundary-validation.md) ｜ 下一课：第 8 课 · 工程化与测试（完成本课后解锁）*
+*上一课：[第 6 课 · 边界校验](0006-boundary-validation.md) ｜ 下一课：[第 8 课 · 工程化与测试](0008-engineering-testing.md)*
 *TypeScript 开发 · 20 小时速通 · 总计划见 [00_20小时速通计划.md](../00_20小时速通计划.md)*
