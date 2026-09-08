@@ -29,7 +29,7 @@ function remove(id: number): boolean {
   return false; // 返回 false 表示删除失败（不存在）
 }
 // TODO 3) update(id, changes)：只改 changes 里给的字段，其余字段保持原样
-function update(id: number, changes: Partial<Omit<Contact, 'id' | 'tags'>>): Contact | undefined {
+function update(id: number, changes: Partial<Pick<Contact, 'name' | 'phone'>>): Contact | undefined {
   const contact = contacts.find(contact => contact.id === id); // 找到要改的联系人
   if (contact) { // 如果找到了
     Object.assign(contact, changes); // 用 changes 覆盖原来的字段
@@ -40,6 +40,14 @@ function update(id: number, changes: Partial<Omit<Contact, 'id' | 'tags'>>): Con
 // TODO 4) findByTag(tag)：找出带这个标签的所有联系人（一个 filter 就够）
 function findByTag(tag: Tag): Contact[] {
   return contacts.filter(contact => contact.tags.includes(tag)); // 过滤出带这个标签的联系人
+}
+
+function countByTag():Record<Tag, number> {
+  const counts: Record<Tag, number> = {"家人":0, "朋友":0, "同事":0, "工作":0};
+  for (const contact of contacts) {
+    for (const tag of contact.tags) counts[tag]++;
+  }
+  return counts;
 }
 // TODO 5) 演示区：add 三条（其中一条没有电话、一条带两个标签）→ findByTag → update →
 //        删一个存在的 id 和一个不存在的 id —— 每步结果都 console.log 出来对照预期
@@ -56,6 +64,8 @@ console.log("更新后的联系人:", contacts.find(contact => contact.id === 1)
 
 console.log("查找标签为 '朋友' 的联系人:");
 findByTag("朋友").forEach(contact => console.log(contact));
+
+console.log(countByTag());
 
 // ======================= 实验区（任务 2 · 改造实验）=======================
 // TODO 6) readonly 实验：给 phone 加 readonly → 在实验区写"改属性"和"换新对象"各一行 →

@@ -33,7 +33,17 @@ const contacts: Contact[] = [
 //          groupBy(contacts, c => c.phone === undefined ? "没电话" : "有电话") // 按有没有电话
 // TODO 2) 探针验证（判卷证据，写完保留在函数下方）：
 //        const grouped: Record<string, Contact[]> = groupBy(contacts, c => c.tags[0]);
+function groupBy<T>(items:T[], keyFn: (item: T) => string):Record<string, T[]> {
+  const groups:Record<string, T[]> = {};
+  for (const item of items){
+    const key = keyFn(item);
+    if(key in groups) groups[key].push(item);
+    else groups[key] = [item];
+  }
+  return groups;
+}
 
+const grouped: Record<string, Contact[]> = groupBy(contacts, c => c.tags[0]);
 // ======================= 工具 2：pluck（约 15 分钟）=======================
 // TODO 3) 实现 pluck(objs, key)：
 //        行为——从每个对象里取出 key 属性，组成数组（一个 map 的事）；
@@ -43,6 +53,11 @@ const contacts: Contact[] = [
 //        const phones: (string | undefined)[] = pluck(contacts, "phone");    // 可选属性的账（§4 Q5）
 // TODO 5) 手滑实验：写 pluck(contacts, "nam")（多打一个字母）→ 跑 npx tsc --noEmit，
 //        抄报错原文到留痕区 → 注释掉这行，恢复沉默——这是约束替你值班的活证据
+function pluck<T, K extends keyof T>(objs: T[], key: K): T[K][]{
+  return objs.map(obj => obj[key]);
+}
+const names: string[] = pluck(contacts, "name");                    // 应得 string[]
+const phones: (string | undefined)[] = pluck(contacts, "phone");    // 可选属性的账（§4 Q5）
 
 // ======================= 工具 3：chunk（约 20 分钟）=======================
 // TODO 6) 实现 chunk(arr, n)：把数组切成 n 个一段，最后一段允许不满
@@ -50,17 +65,41 @@ const contacts: Contact[] = [
 //        边界（第 6 课的功夫）：n <= 0 时返回 []——不防会发生什么，先想清楚再写（提示 3）
 // TODO 7) 探针验证（判卷证据，写完保留）：
 //        const pairs: number[][] = chunk(pluck(contacts, "id"), 2);  // 两个工具串起来用
+function chunk<T>(arr:T[], n:number):T[][]{
+  let i = 0;
+  const result: T[][] = [];
+  if(n <= 0) {
+    return [];
+  } else {
+    while(i < arr.length) {
+      result.push(arr.slice(i, i+n));
+      i += n;
+    }
+  }
+  return result;
+}
+
+const pairs: number[][] = chunk(pluck(contacts, "id"), 2);  // 两个工具串起来用
 
 // ======================= 演示区 ========================
 // TODO 8) 三连演示，每步 console.log、输出对上预期：
 //        ① groupBy(contacts, c => c.tags[0]) —— 看四个标签各分到谁（双标签的 Bob 只进第一组）
 //        ② pluck(contacts, "name") —— 抽出所有名字
 //        ③ chunk(名字数组, 2) —— 切成 2 个一段
-
+console.dir(groupBy(contacts, c=>c.tags[0]), {depth : null});
+console.dir(groupBy(contacts, c => c.phone === undefined ? "没电话" : "有电话"), {depth : null});
+console.log(names);
+console.log(phones);
+console.log(pairs);
+console.log(chunk(names, 2)); 
 // ======================= 留痕区（判卷证据，逐条写）=======================
-// TODO 9) ① 手滑实验的报错原文：
+// TODO 9) ① 手滑实验的报错原文：error TS2345: Argument of type '"nam"' is not assignable to parameter of type 'keyof Contact'.
 //        ② 三发探针各验证出了什么类型（groupBy / pluck 两发 / chunk）：
-//        ③ 一句话：约束 K extends keyof T 到底替你拦了什么——
-
+//    groupBy 探针：注解 Record<string, Contact[]> 编译通过 → T 推断为 Contact；
+//    pluck "name"：string[] 编译通过 → K="name"，T[K] 精确到 string；
+//    pluck "phone"：(string | undefined)[] 编译通过 → 可选属性的 undefined 被类型记住；
+//    chunk 探针：number[][] 编译通过 → 接住 pluck 的 number[]，切段后二维数组
+//        ③ 一句话：约束 K extends keyof T 到底替你拦了什么—— 拦"key 不是 T 的属性名"：错误从运行时的 undefined 提前到编译期一行红（TS2345 直接说 keyof Contact）
+// pluck(contacts, "nam")
 // 完成判据：npx tsc --noEmit 沉默 + 探针全部编译通过（= 推断类型全对）+
 //   演示输出与预期一致 + 留痕三条齐全 + 全程没写 as / !

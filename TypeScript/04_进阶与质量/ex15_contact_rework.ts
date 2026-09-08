@@ -12,10 +12,11 @@
 
 // ======================= 纸面展开（先手写，再验证）=======================
 // TODO 1) 第 2 课的黑名单写法，逐属性展开（纸面写，先不跑代码）：
-//        Partial<Omit<Contact, 'id' | 'tags'>> 展开 = { ______________________ }
+//        Partial<Omit<Contact, 'id' | 'tags'>> 展开 = { name?: string; phone?: string }
+
 // TODO 2) 白名单写法，逐属性展开：
-//        Partial<Pick<Contact, 'name' | 'phone'>> 展开 = { ______________________ }
-// TODO 3) 一句话结论：两个展开相等吗？Pick 和 Omit 是什么关系——
+//        Partial<Pick<Contact, 'name' | 'phone'>> 展开 = { name?: string; phone?: string }
+// TODO 3) 一句话结论：两个展开相等吗？Pick 和 Omit 是什么关系—— 
 //        （提示：Contact 一共几个字段？"去掉 id 和 tags"与"挑出 name 和 phone"……）
 
 // ======================= 回炉 ex4（代码改动落那边）=======================
@@ -31,10 +32,14 @@
 //        跑 npx tsc --noEmit，抄报错原文到下面留痕区 → 修回，恢复沉默
 
 // ======================= 留痕区（判卷证据，逐条写）=======================
-// TODO 1 展开（黑名单版）：
-// TODO 2 展开（白名单版）+ 与悬停对照的结果：
-// TODO 3 一句话结论：
-// TODO 6 漏键报错原文：
+// TODO 1 展开（黑名单版）：{ name?: string; phone?: string }
 
+// TODO 2 展开（白名单版）+ 与悬停对照的结果：{ name?: string; phone?: string }
+// 悬停对照结果：
+// (parameter) changes: Partial<Omit<Contact, "id" | "tags">>
+// (parameter) changes: Partial<Pick<Contact, "name" | "phone">>
+// TODO 3 一句话结论：两个相等，Pick和Omit是互补关系
+// TODO 6 漏键报错原文：error TS2741: Property '工作' is missing in type '{ 家人: number; 朋友: number; 同事: number; }' but required in type 'Record<"同事" | "家人" | "工作" | "朋友", number>'.
+// 验证：const allOptional: Partial<Pick<Contact, 'name' | 'phone'>> = {}; ← 空 {} 编译通过 = name 也可选（Partial 的 ? 是给每个人的）；不套 Partial 的 Pick<Contact, 'name' | 'phone'> 收空 {} 会报 name 缺失——和你漏键实验的 TS2741 同款
 // 完成判据：ex4 的 update 已换白名单版且 npx tsc --noEmit 沉默 + countByTag 计数正确
 //   （双标签的人两头都数到）+ 漏键报错留痕后已修回 + 本文件留痕四条齐全
