@@ -17,3 +17,30 @@
 //        搬完跑 npx tsc --noEmit 应依旧沉默——想想为什么：泛型签名依赖 contacts 吗？
 //        （第 7 课的答案：T 是类型参数，谁调用谁带类型来——模块不需要认识 Contact。）
 // 完成判据：三个函数全部 export + 签名与函数体和 ex14 逐字一致 + tsc 沉默 + tsx 直跑无输出
+export function groupBy<T>(items:T[], keyFn: (item: T) => string):Record<string, T[]> {
+  const groups:Record<string, T[]> = {};
+  for (const item of items){
+    const key = keyFn(item);
+    if(key in groups) groups[key].push(item);
+    else groups[key] = [item];
+  }
+  return groups;
+}
+
+export function pluck<T, K extends keyof T>(objs: T[], key: K): T[K][]{
+  return objs.map(obj => obj[key]);
+}
+
+export function chunk<T>(arr:T[], n:number):T[][]{
+  let i = 0;
+  const result: T[][] = [];
+  if(n <= 0) {
+    return [];
+  } else {
+    while(i < arr.length) {
+      result.push(arr.slice(i, i+n));
+      i += n;
+    }
+  }
+  return result;
+}

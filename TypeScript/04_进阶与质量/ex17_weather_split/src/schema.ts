@@ -20,3 +20,39 @@
 //        （"校验函数里不该有打印和退出"是对的，但那是装修——今天只搬家；
 //         装修等有测试保镖的时候再做，课件 §5 学有余力见。）
 // 完成判据：三个成员全部 export + 与 ex12 逐字一致 + tsc 沉默 + tsx 直跑无输出
+import { z } from "zod";
+
+// 从 ex12 第 27-47 行逐字搬，只在 function 前加 export
+export function parseCoords(args: string[]): [number, number] {
+  if(args.length !== 2){
+    console.log("参数数量非法，只允许输入两个参数");
+    process.exit(1);
+  } 
+  const lat = Number(args[0]);
+  const lon = Number(args[1]);
+
+  if(Number.isNaN(lat) || Number.isNaN(lon)) {
+    console.log("参数非法，传入参数要求均为数字");
+    process.exit(1);
+  } 
+
+  if ((Math.abs(lat) <= 90) && (Math.abs(lon) <= 180)) {
+    console.log(`坐标合法:${lat}, ${lon}`);
+    return [lat, lon];
+  } else {
+    console.error("纬度需在-90~90, 经度需在-180~180");
+    process.exit(1);
+  }
+}
+
+// 从 ex12 第 50-56 行逐字搬，const 前加 export
+export const weatherSchema = z.object({
+  daily: z.object({
+    time: z.array(z.string()),
+    temperature_2m_max: z.array(z.number()),
+    temperature_2m_min: z.array(z.number()),
+  }),
+});
+
+// 从 ex12 第 57 行原样搬
+export type Weather = z.infer<typeof weatherSchema>;

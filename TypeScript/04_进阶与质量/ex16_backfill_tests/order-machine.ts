@@ -18,8 +18,43 @@
 //        export function next(order: Order, action: "pay" | "ship" | "cancel"): Order { ... }
 //        不搬：TODO 注释、演示区（order1/order2/order3 的故事）、删 case 实验的留痕——
 //        那些是"表演"和"档案"，模块只留"能力"。
-//        搬完跑 npx tsc --noEmit，应依旧沉默（搬家不动类型，沉默是搬对的证据）。
-// TODO 2) 自检一行（写在脑门上，不用写在这）：这个模块被 import 时，会打印东西吗？
+//        搬完跑 npx tsc --noEmit，应依旧沉默（搬家不动类型，沉默是搬对的证据）。// TODO 2) 自检一行（写在脑门上，不用写在这）：这个模块被 import 时，会打印东西吗？
 //        会发网络请求吗？会改全局变量吗？——都不会，这叫"无副作用"。
 //        测试最喜欢的就是这种模块：给它什么输入，它给什么输出，干干净净（课件 §2.4）。
 // 完成判据：四个成员全部 export + 与 ex7 逐字一致 + npx tsc --noEmit 沉默 + tsx 直跑无输出
+export type OrderStatus = "pending" | "paid" | "shipped" | "cancelled";
+export type Order = 
+  | { status: "pending"; amount: number }
+  | { status: "paid"; amount: number; paidAt: string }
+  | { status: "shipped"; amount: number; paidAt: string; trackingNo: string }
+  | { status: "cancelled"; amount: number; reason: string };
+
+export function assertNever(x: never): never {
+  throw new Error(`穷尽检查失败，传入了 ${x}`);
+}
+
+export function next(order: Order, action: "pay" | "ship" | "cancel"): Order {
+    switch (order.status) {
+        case "pending": 
+            if (action === "pay") {
+                return { ...order, status: "paid", paidAt: new Date().toISOString() };
+            } else {
+                throw new Error(`非法流转：pending 状态不能执行 ${action}`);
+            }
+        case "paid":
+            if (action === "ship") {
+                const trackingNo = "SF" + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+                return { ...order, status: "shipped", trackingNo };
+            } else if (action === "cancel") {
+                return { ...order, status: "cancelled", reason: "用户取消订单" };
+            } else {
+                throw new Error(`非法流转：paid 状态不能执行 ${action}`);
+            }
+        case "shipped": 
+            throw new Error(`非法流转：shipped 状态不能执行 ${action}`);
+        case "cancelled":
+            throw new Error(`非法流转：${order.status} 状态不能执行 ${action}`);
+        default:
+            return assertNever(order);
+    }
+}

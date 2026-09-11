@@ -14,7 +14,8 @@
 //
 // 规则：先把隔壁 order-machine.ts 迁移完再动本文件（import 要有东西可 import）；
 //   每个测试自己造夹具，不共享变量；全程禁 as / ！。
-
+import { describe, it, expect } from "vitest";
+import { type Order, next } from "./order-machine.js";
 // ======================= 测试区（约 20 分钟）=======================
 // TODO 1) describe("next", ...) 里至少 4 个 it（必测清单，判卷逐条对账）：
 //        ① pending + pay → status 变 "paid"：expect(result.status).toBe("paid")
@@ -26,3 +27,53 @@
 //        paidAt / trackingNo 是运行时生成的（时间戳、随机数）——不可控的值不测内容，
 //        测它在不在、是什么类型（typeof === "string"）——"测行为不测实现"的第一课。
 // 完成判据：≥4 个 it 全绿 + describe/it 的名字连起来读像句子（红的时候一眼看出哪坏了）+ tsc 沉默
+const allActions: ("pay" | "ship" | "cancel")[] = ["pay", "ship", "cancel"];
+describe ("next(订单状态机)", () => {
+    // --- test 1
+    it("pending + pay -> paid", () => {
+        const pending: Order = {status: "pending", amount: 42};
+        const result = next(pending, "pay");
+        expect(result.status).toBe("paid");
+    })
+    // --- test 2
+    it("paid + cancel -> cancelled", () => {
+        const paid: Order = {status: "paid", amount: 42, paidAt:new Date().toISOString()};
+        const result = next(paid, "cancel");
+        expect(result.status).toBe("cancelled")
+    })
+    // --- test 3
+    it("pending + ship -> reject", () => {
+        const pending: Order = {status: "pending", amount: 42};
+        expect(() => next(pending, "ship")).toThrow("非法流转")
+    })
+    // --- test 4
+    it("shipped + any -> reject", () => {
+        const shipped:Order = {status: "shipped", amount:42, paidAt:new Date().toISOString(), trackingNo:"011"};
+        for(const action of allActions) {
+            expect(() => next(shipped, action)).toThrow("非法流转");
+        }
+    })
+    // --- test 5
+    it("cancelled + any -> reject", () => {
+        const cancelled:Order = {status: "cancelled", amount:42,  reason:"不要了"};
+        for(const action of allActions) {
+            expect(() => next(cancelled, action)).toThrow("非法流转");
+        }
+    })
+    // --- test 6
+    it("paid + ship -> shipped", () => {
+        const paid :Order = {status: "paid", amount:100, paidAt:new Date().toISOString()};
+        const result = next(paid, "ship");
+        expect(result.status).toBe("shipped");
+    })
+    // --- test 7
+    it("paid + pay -> reject", () => {
+        const paid :Order = {status: "paid", amount:100, paidAt:new Date().toISOString()};
+        expect(() => next(paid, "pay")).toThrow("非法流转")
+    })
+    // --- test 8
+    it("pending + cancel -> reject", () => {
+        const pending :Order = {status: "pending", amount:100};
+        expect(() => next(pending, "cancel")).toThrow("非法流转")
+    })
+});

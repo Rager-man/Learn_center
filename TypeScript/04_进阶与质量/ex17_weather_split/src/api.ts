@@ -24,3 +24,15 @@
 //        }
 //        对比：ex12 里这三步散在 try 块顶层；现在它们有了一个有名字的家。
 // 完成判据：url 不 export、fetchWeather export 且返回 Promise<unknown> + tsc 沉默 + tsx 直跑无输出
+const url = (lat: number, lon: number): string =>
+  `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+  `&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=2`;
+
+export async function fetchWeather(lat: number, lon: number): Promise<unknown> {
+    const res = await fetch(url(lat, lon));
+    if (!res.ok) {
+        console.error(`路径 2：fetch 成功但返回不 ok，status 是：${res.status}`);
+        process.exit(1);
+    }
+    return res.json();
+}
