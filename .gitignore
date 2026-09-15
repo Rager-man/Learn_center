@@ -9,6 +9,7 @@ postgres_data/
 node_modules/
 package-lock.json
 package.json
+TypeScript/03_工程与异步/ex18_todo/todo.json*
 
 # 本地工具配置目录（根目录与 AI_agent 内）
 .zcode/

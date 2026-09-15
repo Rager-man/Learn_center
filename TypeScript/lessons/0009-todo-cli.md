@@ -208,13 +208,13 @@ type Task =
 
 ### §3.4 自查清单
 
-- [ ] model：三态判别联合 + 两个转移函数，非法输入 throw 人话（ex16 模式平移）
-- [ ] store：parseDb 两层坏都回 null；load 三分支齐，坏文件留 `.bad` 现场 + 人话 + 空库重建，不裸崩
-- [ ] cli：四命令全通；五条错误路径人话 + exit 1；find 之后先判 undefined（TS18048 没硬闯）
-- [ ] 测试：≥5 条 it 全绿（合法 ×2 / 非法 ×2 / parseDb 好 ×1 坏 ×1），出生占位已删
-- [ ] 留痕：坏文件实测 + nextId 重启验证，都记进 dogfood.md
-- [ ] 重启后 id 单调（第 2 课 bug 的回马枪通过）
-- [ ] `npx tsc --noEmit` 沉默 + `npm test` 绿；全程没写 `as` / `!`，命名 camelCase
+- [x] model：三态判别联合 + 两个转移函数，非法输入 throw 人话（ex16 模式平移）✅ 2026-09-15
+- [x] store：parseDb 两层坏都回 null；load 三分支齐，坏文件留 `.bad` 现场 + 人话 + 空库重建，不裸崩 ✅ 2026-09-15
+- [x] cli：四命令全通；五条错误路径人话 + exit 1；find 之后先判 undefined（TS18048 没硬闯）✅ 2026-09-15
+- [x] 测试：≥5 条 it 全绿（合法 ×2 / 非法 ×2 / parseDb 好 ×1 坏 ×1），出生占位已删 ✅ 2026-09-15
+- [x] 留痕：坏文件实测 + nextId 重启验证，都记进 dogfood.md ✅ 2026-09-15
+- [x] 重启后 id 单调（第 2 课 bug 的回马枪通过）✅ 2026-09-15
+- [x] `npx tsc --noEmit` 沉默 + `npm test` 绿；全程没写 `as` / `!`，命名 camelCase ✅ 2026-09-15
 
 > 💡 **卡住 20 分钟就求助**
 > 老规矩四样：期望什么、实际发生什么、完整报错、相关代码。今天尤其欢迎三类：`JSON.parse` 相关的炸（贴完整现场，我们对一看是哪层坏）；zod 报错看不懂的（`Invalid discriminator value` 这类其实说的是人话，一起读）；以及 dogfood 里用出来的别扭瞬间——那不是麻烦，是任务 2 的交付物本身。

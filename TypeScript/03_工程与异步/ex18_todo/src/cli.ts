@@ -12,12 +12,18 @@
 //
 // 规则：全程禁 as / ！；命名 camelCase；每条错误路径打印人话 + process.exit(1)，
 //   不许裸崩（§1.1 C 段那个死法就是验收的反面教材）。
-
+import { startTask, finishTask} from "./model.js";
+import { load, save } from "./store.js";
 // ======================= 入口区（TODO 7–9，约 15 分钟）=======================
 // TODO 7) main() 骨架：const [cmd, ...rest] = process.argv.slice(2)
 //        cmd === undefined → 打印用法（todo <add|list|doing|done> [参数]）+ exit 1
 //        const db = load() —— 开场先把数据请进门（兜底在 store 里已经办完）
-//
+const [cmd, ...rest] = process.argv.slice(2);
+if(cmd === undefined){
+    console.log("todo <add|list|doing|done> [参数]");
+    process.exit(1);
+}
+const db = load();
 // TODO 8) add 和 list：
 //          add：rest.join(" ") 当标题（支持空格）；空标题 → 人话 + exit 1；
 //               db.tasks.push({ status: "todo", id: db.nextId, title });
@@ -25,7 +31,6 @@
 //          list：空库 → "暂无任务"；否则每行一条。
 //               格式自定，建议： [ ] #1 买牛奶 /  [>] #2 写周报（开始于 2026-09-11T07:14）
 //               /  [x] #3 ...（完成于 ...）——标记一眼分得清三态。
-//
 // TODO 9) doing <id> 和 done <id>：
 //          Number(rest[0]) 转 id；db.tasks.find(t => t.id === id)
 //          —— find 的返回是 Task | undefined：先判 undefined（找不到 → 人话 + exit 1，
@@ -35,7 +40,79 @@
 //          第 4 课 ex7 演示区的同款动作）。
 //          成功路径：把旧任务换成新任务（想想 db.tasks.indexOf + 展开，或者 map 一遍）、
 //          save(db)、打印"已更新"。
-//
+const title = rest.join(" ");
+switch (cmd) {
+    case "add" : {
+        if(title === "") {
+            console.log("标题为空，不符合要求");
+            process.exit(1);
+        }
+        db.tasks.push({ status: "todo", id: db.nextId, title});
+        db.nextId += 1;
+        save(db);
+        console.log(`已添加 #${db.nextId-1} ${title}`);
+        break;
+    }
+
+    case "list" : {
+        if(db.tasks.length === 0) {
+            console.log("暂无任务");
+        } else {
+            db.tasks.forEach(task => {
+                switch(task.status) {
+                    case "todo"  : console.log(`[ ] # ${task.id} ${task.title}`); break;
+                    case "doing" : console.log(`[>] # ${task.id} ${task.title} (开始于 ${task.startedAt})`); break;
+                    case "done"  : console.log(`[x] # ${task.id} ${task.title} (完成于 ${task.finishedAt})`); break;
+                    default : console.log("status error");
+                }
+            });
+        }
+        break;
+    }
+
+    case "doing" : {
+        const taskId = Number(rest[0]);
+        try {
+            const findTask = db.tasks.find( t => t.id === taskId);
+            if(findTask !== undefined) {
+                db.tasks[db.tasks.indexOf(findTask)] = startTask(findTask);
+                save(db);
+                console.log("待办列表已更新");
+            } else {
+                console.log("未找到对应任务id");
+                process.exit(1);
+            }
+        } catch(err) {
+            if( err instanceof Error) console.log(err.message);
+            process.exit(1);
+        }
+        break;
+    }
+
+    case "done" : {
+        const taskId = Number(rest[0]);
+        try {
+            const findTask = db.tasks.find( t => t.id === taskId);
+            if(findTask !== undefined) {
+                db.tasks[db.tasks.indexOf(findTask)] = finishTask(findTask);
+                save(db);
+                console.log("待办列表已更新");
+            } else {
+                console.log("未找到对应任务id");
+                process.exit(1);
+            }
+        } catch(err) {
+            if( err instanceof Error) console.log(err.message);
+            process.exit(1);
+        }
+        break;
+    }
+
+    default: {
+        console.log("命令错误, 命令格式:todo <add|list|doing|done> [参数]");
+        process.exit(1);
+    }
+}
 // 完成判据：四命令全通；五条错误路径（无命令 / 空标题 / 找不到 id / 非法转移 / 不认识的命令）
 //   都有人话 + exit 1；npm run todo -- add 买牛奶 → list → doing 1 → done 1 一条龙跑通；
 //   npx tsc --noEmit 沉默。
