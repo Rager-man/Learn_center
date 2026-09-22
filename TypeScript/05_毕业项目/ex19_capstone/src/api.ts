@@ -24,7 +24,6 @@
 //   注意：ex1 原文的 `process.env.LLM_API_KEY!` 那三个 `!` 一个都不许带来——见 TODO 3。
 //
 // 规则：全程禁 as / ！；命名 camelCase；网络只准住这间（cli 不许直接 fetch）。
-
 // ======================= 调用区（TODO 2，约 10 分钟）=======================
 // TODO 2) 主调用函数，选一（骨架给签名，错误路径细节在 TODO 3）：
 //   选 A：export async function fetchRepos(username: string): Promise<Repo[]>
@@ -33,7 +32,36 @@
 //     —— env 三兄弟（TODO 3）→ fetch（黑盒照抄）→ 查 resp.ok → resp.json()
 //       → llmResponseSchema.safeParse → 拿 choices[0].message.content（string）return
 //   两个版本都是"进门就验"：safeParse 成功之前，手里只许是 unknown。
+import { repoListSchema, type Repo } from "./schema.js"
 
+export async function fetchRepos(username: string): Promise<Repo[]> {
+    let res: Response;
+    try {
+        res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`, {
+            headers: { Accept: "application/vnd.github+json", "User-Agent": "capstone-cli" },
+        });
+    } catch {
+        throw new Error("网络不通：检查网络后重试");
+    }
+    if (!res.ok) {
+        if (res.status === 404) {
+            throw new Error(`用户 ${username} 不存在（HTTP 404）：检查用户名拼写`);
+        }
+        if (res.status === 403) {
+            throw new Error("GitHub 免登录限额用完（HTTP 403，60 次/小时）：一小时后再试");
+        }
+        throw new Error(`GitHub 返回了异常状态（HTTP ${res.status}）`);
+    }
+    const data: unknown = await res.json();
+    const parsed = repoListSchema.safeParse(data);
+    if (!parsed.success) {
+        const detail = parsed.error.issues
+            .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+            .join("；");
+        throw new Error(`数据结构不对（zod 拦下）：${detail}`);
+    }
+    return parsed.data;
+}
 // ======================= 错误路径区（TODO 3，约 10 分钟）=======================
 // TODO 3) 三条错误路径每条 throw 人话（"人话"= 用户看了知道下一步干什么）：
 //   ① 断网：fetch reject → try/catch 接住 → throw new Error("网络不通：检查网络后重试")

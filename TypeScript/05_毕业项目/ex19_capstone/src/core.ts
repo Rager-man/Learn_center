@@ -23,7 +23,7 @@
 //   }
 //
 // 规则：全程禁 as / ！；命名 camelCase；本间不 import api / cli（依赖只往"更纯"的方向流）。
-
+import { Repo } from "./schema.js";
 // ======================= 主纯函数（TODO 4，约 10 分钟）=======================
 // TODO 4) 选一：
 //   选 A：export function buildReport(repos: Repo[]): Report
@@ -34,7 +34,18 @@
 //   选 B：export function parseCard(text: string): Card | null
 //     —— 两层坏都回 null 不裸崩（黑盒照抄）。注意 LLM 的 content 可能裹着 ```json 围栏，
 //        想处理的先 trim/剥壳再 parse——剥壳放这层，不放 cli。
-
+type Report = { 
+    repoTotal: number,
+    latestPushed: Repo | undefined,
+    languageDist: Record<string, number>
+};
+export function buildReport(repos: Repo[]): Report {
+    const languageDist: Record<string, number> = {};
+    for (const repo of repos) {
+        const lang = repo.language ?? "未标注";
+        languageDist[lang] = (languageDist[lang] ?? 0) + 1;
+    }
+}
 // ======================= 副纯函数（TODO 5，约 10 分钟）=======================
 // TODO 5) 选一：
 //   选 A：export function formatReport(report: Report): string[]

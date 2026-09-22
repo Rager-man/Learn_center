@@ -11,7 +11,7 @@
 //
 // 规则：全程禁 as / ！；命名 camelCase；schema 字段名跟 API 真实字段走（GitHub 是 snake_case
 //   的世界——pushed_at 不是 pushedAt，合同如实照抄，别替 API 改名）。
-
+import { z } from "zod";
 // ======================= 合同区（TODO 1，约 10 分钟）=======================
 // TODO 1) 按你在 REQUIREMENTS.md 勾的选项定稿合同——两段草样都在下面，选一删一。
 //
@@ -36,6 +36,14 @@
 //     example: z.string(),
 //   });
 //   export type Card = z.infer<typeof cardSchema>;     // 加固对象：LLM 吐的 JSON 必须长这样才算数
+const repoSchema = z.object({
+    name: z.string(),
+    language: z.string().nullable(),
+    pushed_at: z.string(),
+    html_url: z.string(),
+})
 
+export type Repo = z.infer<typeof repoSchema>;
+export const repoListSchema = z.array(repoSchema);
 // 完成判据：合同与 API 真实字段一致（选 A 的 language 可空！）；类型全部 z.infer 过桥而来；
 //   npx tsc --noEmit 沉默；npx tsx 直跑本文件无输出。
