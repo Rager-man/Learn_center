@@ -46,7 +46,7 @@ interface ToolSchema {
   type: "function";
   function: {
     name: string;
-    description: string;  // ← 写给模型看：我是干什么的、什么情况下该用我、参数什么格式
+    description: "计算算术表达式的精确值。当用户的问题包含加减乘除、乘方或括号运算、需要精确结果时使用。";  // ← 写给模型看：我是干什么的、什么情况下该用我、参数什么格式
     parameters: { type: "object"; properties: Record<string, unknown>; required?: string[] };
   };
 }
@@ -82,8 +82,32 @@ async function main() {
   //      messages.push({ role: "tool", tool_call_id: message.tool_calls![0].id, content: result });
   //      再 chatWithTools 一次，打印 message.content——这次的 finish_reason 应该是 "stop"
   //   完成判据：tsc 沉默 + 终端输出里能逐行指认"哪几行是模型在干活、哪几行是你的代码在干活"
+  const messages: ChatMessage[] = [{role: "user", content: "123乘以456等于多少?"}];
+  const {message, finish_reason} = await chatWithTools(messages, [CALCULATOR_SCHEMA]);
+  const args = JSON.parse(message.tool_calls![0].function.arguments);
+  let result:string ;
+  try{
+    result = calculate(args.expression);
+  } catch (err) {
+    if (err instanceof Error) {
+      result = err.message;
+    } else {
+      throw new Error("意外报错");
+    }
+  }
+  
+  // 第二次请求
+  messages.push(message);
+  messages.push({ 
+    role: "tool" ,
+    tool_call_id : message.tool_calls![0].id,
+    content : result,
+  })
+
+  const {message:message_tool, finish_reason:reason_tool} = await chatWithTools(messages, [CALCULATOR_SCHEMA]);
+  console.log(message_tool);
+  console.log(reason_tool);
 }
-main();
 
 // ======================= 任务 1 待写区（TODO 1–2，课文 §3 任务 1）=======================
 // TODO 1) 把 CALCULATOR_SCHEMA 的两处 description 改写成"给模型看的说明书"（课文 §2.2）：
@@ -93,11 +117,11 @@ const CALCULATOR_SCHEMA: ToolSchema = {
   type: "function",
   function: {
     name: "calculator",
-    description: "TODO(1)：给模型看的说明书——我能算什么、什么时候该用我",
+    description: "计算算术表达式的精确值。当用户的问题包含加减乘除、乘方或括号运算、需要精确结果时使用。",
     parameters: {
       type: "object",
       properties: {
-        expression: { type: "string", description: "TODO(1)：这个参数长什么样？给个示例格式" },
+        expression: { type: "string", description: "一个算术表达式字符串，只含数字、空白和 + - * / ( ) . ^，乘方用 ^" },
       },
       required: ["expression"],
     },
@@ -114,9 +138,26 @@ const CALCULATOR_SCHEMA: ToolSchema = {
 //   提醒：2^64 超出 JS Number 精度边界（2^53），结果不精确——先记下这个现象，§5 学有余力再治
 function calculate(expr: string): string {
   // TODO(2)：三道关。写完先自测：calculate("(17+3)*12-8/2")、calculate("2^64")、calculate("hello*3")
-  throw new Error("TODO(2)：还没写");
-}
+  if (/[^\d\s+\-*/().^]/.test(expr)) {
+    throw new Error(`非法表达式：只支持数字、空白和 + - * / ( ) . ^`);
+  }
+  const expr_t = expr.replaceAll("^", "**");
+  let result :number;
+  try{
+    result = new Function("return (" + expr_t + ")")();
+  } catch {
+    throw new Error(`不是合法的数学表达式: ${expr}`);
+  }
 
+  if(!Number.isFinite(result)){
+    throw new Error("除数为0");
+  }
+
+  return String(result);
+}
+// console.log(calculate("(17+3)*12-8/2"));
+// console.log(calculate("2^64"));
+// calculate("hello*3");
 // ======================= 任务 2 待写区（TODO 4–5，课文 §3 任务 2）=======================
 // TODO 4) get_current_time 工具（课文 §3 任务 2 第 1 步）：
 //   - TIME_SCHEMA：无参数工具——parameters 就一个 { type: "object", properties: {} }；
@@ -235,3 +276,6 @@ const QUESTIONS: QuestionItem[] = [
         + "这是第 5 课工具返回值设计的伏笔",
   },
 ];
+
+// 执行主函数
+main();

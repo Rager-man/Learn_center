@@ -80,3 +80,16 @@
 ```
 
 上下文预算快到了，先不展开下一轮问题，收束当前讨论并保存续谈进度到暂存文档中，等我执行/compact
+
+---
+### gpt 6 skill 和AGENTS.md优化:
+读这篇： developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra
+审计当前 AGENTS.md 和 Skills。
+只找三类问题：
+过度干活
+指令冲突
+无意义等待
+每条给出原句、问题原因、最小修改建议。
+不要直接修改文件。
+
+四人任务并行 -> 规划好每人的代码接口 -> 合入测试
