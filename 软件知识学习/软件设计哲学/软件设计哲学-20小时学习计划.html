@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《软件设计哲学》20 小时学习计划</title>
+<style>
+:root{
+  --blue:#185FA5; --blue-d:#0C447C; --blue-l:#E6F1FB;
+  --amber:#BA7517; --amber-d:#633806; --amber-l:#FAEEDA;
+  --teal:#0F6E56; --teal-l:#E1F5EE;
+  --red:#A32D2D; --red-l:#FCEBEB;
+  --line:#E3E6EB; --ink:#1F2328; --ink2:#5A6472; --ink3:#8A93A0;
+  --bg:#F6F7F9; --card:#FFFFFF;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:0 0 80px; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14px; line-height:1.7;
+}
+.wrap{max-width:900px; margin:0 auto; padding:0 20px}
+
+header.top{
+  background:var(--card); border-bottom:1px solid var(--line);
+  padding:32px 0 0; margin-bottom:26px;
+}
+.h1{font-size:24px; font-weight:600; margin:0 0 6px; letter-spacing:-.2px}
+.sub{color:var(--ink2); font-size:14px; margin:0 0 18px}
+.pills{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
+.pill{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 11px; border-radius:999px; font-size:12px;
+  background:var(--blue-l); color:var(--blue-d); border:1px solid #C9DFF4;
+}
+.pill.a{background:var(--amber-l); color:var(--amber-d); border-color:#F0D6A8}
+.pill.t{background:var(--teal-l); color:var(--teal); border-color:#BEE4D6}
+.progress-row{display:flex; align-items:center; gap:12px; padding:14px 0 16px; border-top:1px solid var(--line)}
+.bar{flex:1; height:7px; border-radius:99px; background:#E9ECF1; overflow:hidden}
+.bar > i{display:block; height:100%; width:0; background:var(--blue); border-radius:99px; transition:width .25s ease}
+.pct{font-size:12px; color:var(--ink2); font-variant-numeric:tabular-nums; min-width:96px; text-align:right}
+
+h2.sec{font-size:16px; font-weight:600; margin:34px 0 4px}
+p.secsub{color:var(--ink2); font-size:13px; margin:0 0 14px}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px}
+.lever{
+  background:var(--card); border:1px solid var(--line); border-radius:10px;
+  padding:12px 14px; display:flex; gap:10px; align-items:flex-start;
+}
+.lever b{
+  flex:0 0 22px; height:22px; border-radius:6px; background:var(--blue-l); color:var(--blue-d);
+  font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; margin-top:1px;
+}
+.lever span{font-size:13px; line-height:1.55}
+.lever em{font-style:normal; color:var(--ink3); display:block; font-size:12px; margin-top:2px}
+
+.tmpl{
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:16px 18px; margin-top:12px;
+}
+.tmpl-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+.tmpl-row div{
+  flex:1 1 160px; border:1px dashed #CFD6DE; border-radius:8px; padding:10px 12px;
+}
+.tmpl-row strong{display:block; font-size:13px; font-weight:600; color:var(--blue-d)}
+.tmpl-row small{color:var(--ink2); font-size:12px}
+
+.session{
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  margin-top:14px; overflow:hidden;
+}
+.shead{display:flex; gap:14px; align-items:flex-start; padding:16px 18px 14px; border-bottom:1px solid var(--line)}
+.snum{
+  flex:0 0 42px; height:42px; border-radius:10px; background:var(--blue); color:#fff;
+  font-size:15px; font-weight:600; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.05;
+}
+.snum small{font-size:9px; opacity:.8; font-weight:400}
+.shead h3{margin:0 0 3px; font-size:15px; font-weight:600}
+.meta{font-size:12px; color:var(--ink2); display:flex; gap:10px; flex-wrap:wrap}
+.meta i{font-style:normal; color:var(--ink3)}
+.lv{
+  margin-left:auto; flex:0 0 auto; font-size:11px; padding:3px 9px; border-radius:999px;
+  background:var(--amber-l); color:var(--amber-d); border:1px solid #F0D6A8; white-space:nowrap;
+}
+.sbody{padding:14px 18px 18px}
+.block + .block{margin-top:14px}
+.bt{font-size:13px; font-weight:600; margin:0 0 6px; display:flex; align-items:center; gap:7px}
+.bt::before{content:""; width:3px; height:12px; border-radius:2px; background:var(--blue)}
+.bt.g::before{background:var(--teal)}
+.bt.q::before{background:var(--amber)}
+ul.li{margin:0; padding-left:0; list-style:none}
+ul.li li{position:relative; padding-left:20px; margin-bottom:5px; font-size:13px; line-height:1.65}
+ul.li li::before{
+  content:""; position:absolute; left:5px; top:8px; width:5px; height:5px;
+  border-radius:50%; background:#B7C2CE;
+}
+ol.li{margin:0; padding-left:0; list-style:none; counter-reset:o}
+ol.li li{position:relative; padding-left:24px; margin-bottom:7px; font-size:13px; line-height:1.65; counter-increment:o}
+ol.li li::before{
+  content:counter(o); position:absolute; left:0; top:2px; width:16px; height:16px; border-radius:5px;
+  background:var(--teal-l); color:var(--teal); font-size:10px; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+}
+ul.qs li::before{background:var(--amber-l); border-radius:2px; width:6px; height:6px; top:8px}
+.ck{
+  display:flex; gap:9px; align-items:flex-start; padding:6px 8px; border-radius:7px;
+  cursor:pointer; transition:background .15s;
+}
+.ck:hover{background:#F4F6F9}
+.ck input{margin:4px 0 0; accent-color:var(--blue); flex:0 0 auto; width:14px; height:14px}
+.ck span{font-size:13px; line-height:1.65}
+.ck.done span{color:var(--ink3); text-decoration:line-through}
+.note{
+  background:var(--teal-l); border:1px solid #BEE4D6; border-radius:10px;
+  padding:12px 16px; font-size:13px; color:#0B5340; margin-top:14px;
+}
+.note strong{font-weight:600}
+footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--line); color:var(--ink3); font-size:12px; text-align:center}
+@media print{
+  body{background:#fff; padding:0}
+  .progress-row{display:none}
+  .session{break-inside:avoid}
+  header.top{border-bottom:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1 class="h1">《软件设计哲学》20 小时学习计划</h1>
+    <p class="sub">A Philosophy of Software Design · John Ousterhout —— 10 次 × 2 小时，只学真正产生复利的 20%</p>
+    <div class="pills">
+      <span class="pill">10 次学习</span>
+      <span class="pill">20 小时</span>
+      <span class="pill a">5 个能力等级</span>
+      <span class="pill t">每次含目标 / 练习 / 复盘</span>
+    </div>
+    <div class="progress-row">
+      <div class="bar"><i id="bar"></i></div>
+      <div class="pct" id="pct">0 / 0 项已完成</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2 class="sec">第一步：先锁定这 10 个杠杆点</h2>
+  <p class="secsub">全书约 190 页、21 章，但真正改变你行为的只有下面 10 条。其余内容都是它们的解释与延伸。</p>
+  <div class="grid" id="levers"></div>
+
+  <h2 class="sec">第二步：每次 2 小时的固定节奏</h2>
+  <p class="secsub">练习权重只增不减。只读不动手，这本书几乎不可能内化。</p>
+  <div class="tmpl">
+    <div class="tmpl-row">
+      <div><strong>0:00 – 0:55　精读</strong><small>按指定章范围读，边读边记「这句话对应我项目里的哪个地方」</small></div>
+      <div><strong>0:55 – 1:45　动手练习</strong><small>在同一个真实项目上做改造，允许改坏，记录前后差异</small></div>
+      <div><strong>1:45 – 2:00　复盘</strong><small>回答复盘问题，写 3 行结论存档，决定下一层要不要继续</small></div>
+    </div>
+    <p style="margin:12px 0 0; font-size:12.5px; color:var(--ink2)">全程只用一个「贯穿项目」—— 你自己正在写或正在维护的一个真实代码库（建议 300–2000 行）。10 次练习全部作用在它身上，这样每一次都能看到自己代码的连续变化。</p>
+  </div>
+
+  <h2 class="sec">第三步：10 次学习计划</h2>
+  <p class="secsub">勾选可以记录进度，进度会存在本机浏览器里。</p>
+  <div id="sessions"></div>
+
+  <h2 class="sec">结课标准</h2>
+  <div class="note">
+    <strong>20 小时结束时，你应该能做到：</strong>拿到一段陌生代码，能指出其中的信息泄漏、浅模块与变更放大点；动手设计一个新模块时，能先写接口注释、能给出两套方案并说清取舍；修改已有代码时，能守住原有抽象不腐化。如果这三点还做不到，问题几乎一定出在练习环节被压缩了，而不是阅读量不够。
+  </div>
+
+  <footer>《软件设计哲学》20 小时学习计划 · 按章号对应原书 2021 版</footer>
+</div>
+
+<script>
+const LEVERS = [
+  ["复杂度 = 依赖 + 晦涩","定义一切问题的起点"],
+  ["三大症状","变更放大 / 认知负荷 / 未知的未知"],
+  ["战略编程 vs 战术编程","持续投资 10–20% 时间"],
+  ["深模块","接口简单，实现复杂"],
+  ["信息隐藏 vs 信息泄漏","含「时间分解」这个隐形杀手"],
+  ["不同层不同抽象 + 复杂度向下推","别让调用者替你还债"],
+  ["定义错误使其不存在","把特例分支真正删掉"],
+  ["设计两次","先比较两套方案再动手"],
+  ["注释先行","注释是设计工具，不是说明书"],
+  ["命名与「代码应显而易见」","难命名 = 设计有问题"]
+];
+
+const SESSIONS = [
+  {
+    n:1, lv:"L1 · 复杂度认知者", title:"复杂度的本质：问题出在哪",
+    read:"Ch.1 Introduction · Ch.2 The Nature of Complexity",
+    goals:[
+      "能一句话定义复杂度，并说清它由「依赖」和「晦涩」两部分构成",
+      "记住并区分三大症状（变更放大 / 认知负荷 / 未知的未知），能在真实代码里对号入座",
+      "理解复杂度是增量累积的结果，无法靠一次大重构根除"
+    ],
+    ex:[
+      "三症状标注：选一个 300 行左右的项目，给每处「难改的地方」打标签，至少 8 条，并注明是依赖型还是晦涩型",
+      "复杂度累积图：列出该项目 5 个「当时就这样的」小妥协，写出它们今天造成的具体代价",
+      "反面练习：找一个「看起来很乱但改起来不难」的文件，解释为什么它其实不复杂——训练自己区分「丑」和「复杂」"
+    ],
+    qs:[
+      "我不查资料，能不能把复杂度定义讲给一个非程序员听？",
+      "我标的 8 条里，依赖型和晦涩型各占几条？我的短板在哪一侧？",
+      "我最常在哪个症状上栽跟头？"
+    ]
+  },
+  {
+    n:2, lv:"L1 · 复杂度认知者", title:"战略编程：把设计当投资",
+    read:"Ch.3 Working Code Isn't Enough",
+    goals:[
+      "说清战术编程与战略编程的区别，以及「能跑就行」的长期代价",
+      "理解「持续投资 10–20% 时间」背后的复利逻辑",
+      "建立属于自己、可执行的战略编程触发点"
+    ],
+    ex:[
+      "习惯体检：列出最近 5 次「我明知道该重构但没做」的具体场景，写出每次的借口",
+      "制定 10% 规则：为下一个功能写下「什么时候必须停下来改善设计」的 3 条触发条件，贴在手边",
+      "对照实验：拿一个小函数，先写「最快能跑」的版本，再花 20 分钟做战略改进，对比两版的可读性与可改性"
+    ],
+    qs:[
+      "我在什么压力下最容易退化成战术型（赶工期？需求不清？不会写？）？",
+      "如果只能固化一条战略编程习惯，我选哪条，为什么？",
+      "我怎么判断「这个设计已经足够好，可以继续往前」？"
+    ]
+  },
+  {
+    n:3, lv:"L2 · 模块设计者", title:"深模块：接口的艺术",
+    read:"Ch.4 Modules Should Be Deep",
+    goals:[
+      "能画出「接口 vs 实现」的边界，并判断一个模块是深还是浅",
+      "理解深模块的收益：给调用者极小的认知负荷，把大复杂度关在内部",
+      "认识「浅模块」这张红牌，并知道三种修法"
+    ],
+    ex:[
+      "深浅判定 10 例：找 10 个自己项目里的函数或类，逐个判定深浅，各写一行理由",
+      "改造浅模块：删掉它、把逻辑交给调用方，或反向合并进更大的模块，记录代码行数与调用点变化",
+      "接口瘦身：给一个接口列出「调用者必须知道的一切」，逐条追问「能不能藏起来」，写出瘦身后版本"
+    ],
+    qs:[
+      "我的接口里，有多少是为了「实现方便」而暴露出去的？",
+      "深模块会不会导致模块过大？边界应该划在哪？",
+      "我能不能举出一个「浅模块其实合理」的反例？"
+    ]
+  },
+  {
+    n:4, lv:"L2 · 模块设计者", title:"信息隐藏与泄漏：知识应该只写一次",
+    read:"Ch.5 Information Hiding and Leakage · Ch.6 General-Purpose Modules are Deeper",
+    goals:[
+      "区分信息隐藏与普通封装——隐藏的是「知识」，不是变量",
+      "识别信息泄漏的三种表现：同一知识多处出现、时间分解、过度暴露",
+      "认识三类红牌：pass-through method、pass-through variable、classitis"
+    ],
+    ex:[
+      "泄漏狩猎：找出 3 处「同一个格式 / 约定 / 规则写在两个以上地方」，提出收敛方案",
+      "时间分解诊断：找一条按执行步骤命名的函数链（如 readFile → parseData → saveData），改写成按职责划分",
+      "红牌清扫：删掉所有 pass-through 方法与没有加值的中间类，统计删了多少行、可读性是否变好"
+    ],
+    qs:[
+      "我说得出「这个模块隐藏了什么知识」吗？说不出来意味着什么？",
+      "时间分解为什么看起来那么自然，却又那么危险？",
+      "通用化到什么程度就越界成了过度抽象？"
+    ]
+  },
+  {
+    n:5, lv:"L3 · 抽象与错误处理者", title:"抽象层次与复杂度下沉",
+    read:"Ch.7 Different Layer, Different Abstraction · Ch.8 Pull Complexity Downwards",
+    goals:[
+      "理解「每层提供不同抽象」，避免上层接口沦为空壳复制",
+      "掌握复杂度归属的决策原则：由谁承担这个复杂度总体更划算",
+      "能用「接口 / 实现分离」重构掉跨层的抽象重复"
+    ],
+    ex:[
+      "层次解剖：找一条三层调用链，写出每层提供的抽象分别是什么；若两层抽象相同，合并或重新定义",
+      "归属评估：列 3 个「把选择权交给调用者」的 API，逐条判断复杂度该收回实现里还是该暴露出来",
+      "配置瘦身：重构一个参数爆炸的函数，把 5 个参数换成合理默认值 + 少量必要参数"
+    ],
+    qs:[
+      "我的 API 是不是在把「选择权」当「灵活度」卖给调用者？",
+      "什么时候「向下推复杂度」是错的，必须暴露给调用者？",
+      "抽象层次混乱最典型的信号是什么？我身上有吗？"
+    ]
+  },
+  {
+    n:6, lv:"L3 · 抽象与错误处理者", title:"定义错误使其不存在，以及该合该分",
+    read:"Ch.9 Better Together Or Better Apart? · Ch.10 Define Errors Out Of Existence",
+    goals:[
+      "掌握消除错误的四类手法：消除特例、把异常变成正常路径、处理冗余、聚合异常",
+      "建立判断标准：哪些模块该合并，哪些该拆分",
+      "能显著减少函数里的特例分支而不丢功能"
+    ],
+    ex:[
+      "特例歼灭：选一个特例密集的函数（≥4 个边界分支），用「定义错误使其不存在」重写，记录分支数与行数变化",
+      "异常改造：把 3 个抛异常的函数改成返回合理默认值 / 空集合，观察调用方代码如何变短",
+      "合分决策：挑 3 组「拿不准该合还是该分」的模块，用书中标准给出结论并写清理由"
+    ],
+    qs:[
+      "我删掉的这些特例，有几个真的消失了、有几个只是换了地方？",
+      "什么时候抛异常反而是更诚实的设计？",
+      "我的合分决策是靠直觉还是靠明确标准？"
+    ]
+  },
+  {
+    n:7, lv:"L3 · 抽象与错误处理者", title:"设计两次：先比较，再动手",
+    read:"Ch.11 Design it Twice（本次练习权重最高：精读 40 分钟 / 练习 70 分钟）",
+    goals:[
+      "理解为什么必须拿两套完全不同的方案对比，而不是想一个就开写",
+      "掌握设计对比的四个维度：复杂度、通用性、性能、可演进性",
+      "建立「先设计、后编码」的个人流程"
+    ],
+    ex:[
+      "全流程演练：选一个真实需求（如待办事项的存储层、文本编辑器的缓冲区），设计两套接口方案，写成两份接口文档",
+      "对比打分：按四个维度打分列表，选出方案并写明理由，包括「另一套在什么条件下反而更好」",
+      "交叉验证：把两份接口拿给他人（或隔天的自己）看，看对方能否只看接口就正确使用"
+    ],
+    qs:[
+      "第二套方案里有没有冒出「比第一套更好的点子」？这说明什么？",
+      "我评选时用的是直觉还是明确维度？",
+      "设计两次会不会太费时间？我能接受的时间上限是多少？"
+    ]
+  },
+  {
+    n:8, lv:"L4 · 战略编程者", title:"注释先行：用注释倒逼设计",
+    read:"Ch.12 Why Write Comments? · Ch.13 Comments Describe Things Not Obvious · Ch.14 Choosing Names · Ch.15 Write The Comments First",
+    goals:[
+      "能反驳「好代码自解释」等四个借口，并给出理由",
+      "掌握注释尺度：只写代码无法表达的东西，不重复代码、不把实现细节写进接口注释",
+      "掌握「注释先行」工作法：先写接口注释，再写实现"
+    ],
+    ex:[
+      "注释先行写模块：先写完整接口注释，再写实现，记录过程中被注释逼着改了几次设计",
+      "注释审计：找出 10 处「重复代码」的注释，重写为描述意图的注释",
+      "借口反例集：收集 3 个「没有注释就完全看不懂」的真实片段，写出你当时需要的是什么注释"
+    ],
+    qs:[
+      "我的注释里，「重复代码」的比例有多高？",
+      "注释先行让我改掉了哪些原本会写错的设计？",
+      "我有没有在用注释掩盖糟糕的代码？（这是明确禁区）"
+    ]
+  },
+  {
+    n:9, lv:"L4 · 战略编程者", title:"命名、显而易见、一致性，与修改已有代码",
+    read:"Ch.16 Modifying Existing Code · Ch.17 Consistency · Ch.18 Code Should Be Obvious",
+    goals:[
+      "掌握命名三条要求（精确、一致、有信息量），理解「难命名 = 设计有问题」",
+      "理解「代码应显而易见」的三条路径：不意外、不用猜、不为炫技",
+      "掌握修改已有代码的战略：不破坏原有抽象、不让泥球继续长大"
+    ],
+    ex:[
+      "改名实验：给一个模块的所有命名做一次「补全信息」式重命名（如 data → pendingOrderLines），记录可读性变化",
+      "显而易见审计：找出 5 处「要反复读才懂」的代码，改成显而易见版本（提前返回、消除副作用、改名字）",
+      "老代码改造：选一段不属于你的混乱代码，做不改变外部接口的内部重构，写清「我保持了哪些抽象不变、为什么」"
+    ],
+    qs:[
+      "我身上最大的命名坏习惯是什么？",
+      "当「保持一致」和「改正错误」冲突时，我怎么选？",
+      "改老代码时，我怎么判断自己是在改善设计还是在破坏设计？"
+    ]
+  },
+  {
+    n:10, lv:"L5 · 独立系统设计者", title:"综合实战：从零设计并评审",
+    read:"Ch.19 Software Trends · Ch.20 Designing for Performance · Ch.21 Conclusion（快速通读，重点看结论）",
+    goals:[
+      "把十次学到的原则串成一套完整、可复用的设计流程",
+      "对书中原则形成批判视角：哪些有边界、在你的语言与框架里如何落地",
+      "具备独立评审他人设计的能力"
+    ],
+    ex:[
+      "Capstone：从零设计一个小系统（≥4 个模块），输出设计文档——模块划分、每模块接口、复杂度归属、错误处理策略、性能取舍",
+      "自审：用全书红牌清单逐条检查自己的设计，列出仍存在的 3 个已知缺陷，并说明为什么在当前阶段可接受",
+      "评审他人：找一份开源项目或同事的设计与代码，用书中术语写出 5 条具体、可执行的改进建议"
+    ],
+    qs:[
+      "我的设计流程里，哪一步最容易被自己偷偷跳过？",
+      "书里哪一条我不同意或发现不适用？为什么？",
+      "接下来 3 个月，我要把哪一个习惯真正固化下来？"
+    ]
+  }
+];
+
+function el(tag, cls, txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; }
+
+const lvBox = document.getElementById('levers');
+LEVERS.forEach(function(p, i){
+  const d = el('div','lever');
+  const b = el('b', null, String(i+1));
+  const s = el('span', null, p[0]);
+  const em = el('em', null, p[1]);
+  s.appendChild(em);
+  d.appendChild(b); d.appendChild(s);
+  lvBox.appendChild(d);
+});
+
+const store = 'aposd-plan-v1';
+let state = {};
+try { state = JSON.parse(localStorage.getItem(store) || '{}'); } catch(e){ state = {}; }
+
+const boxes = [];
+function mkList(parent, label, items, kind, sid, groupClass){
+  const blk = el('div','block');
+  const t = el('p','bt '+(kind==='q'?'q':(kind==='e'?'g':'')) , label);
+  blk.appendChild(t);
+  const list = el(kind==='e' ? 'ol' : 'ul', 'li'+(kind==='q'?' qs':''));
+  items.forEach(function(txt, i){
+    const li = el('li');
+    const id = sid+'-'+label+'-'+i;
+    const lab = el('label','ck');
+    const cb = document.createElement('input');
+    cb.type='checkbox'; cb.checked = !!state[id];
+    if(cb.checked) lab.classList.add('done');
+    cb.addEventListener('change', function(){
+      state[id] = cb.checked;
+      lab.classList.toggle('done', cb.checked);
+      try { localStorage.setItem(store, JSON.stringify(state)); } catch(e){}
+      updateProgress();
+    });
+    const sp = el('span', null, txt);
+    lab.appendChild(cb); lab.appendChild(sp);
+    li.appendChild(lab);
+    list.appendChild(li);
+    boxes.push(cb);
+  });
+  blk.appendChild(list);
+  parent.appendChild(blk);
+}
+
+const sBox = document.getElementById('sessions');
+SESSIONS.forEach(function(s){
+  const card = el('div','session');
+  const head = el('div','shead');
+  const num = el('div','snum');
+  num.appendChild(document.createTextNode(String(s.n)));
+  num.appendChild(el('small', null, '次'));
+  const mid = el('div');
+  mid.appendChild(el('h3', null, s.title));
+  const meta = el('div','meta');
+  const r = el('span'); r.appendChild(el('i', null, '阅读　')); r.appendChild(document.createTextNode(s.read));
+  meta.appendChild(r);
+  mid.appendChild(meta);
+  const lv = el('span','lv', s.lv);
+  head.appendChild(num); head.appendChild(mid); head.appendChild(lv);
+  card.appendChild(head);
+
+  const body = el('div','sbody');
+  mkList(body, '学习目标', s.goals, 'g', s.n);
+  mkList(body, '练习任务', s.ex, 'e', s.n);
+  mkList(body, '复盘问题', s.qs, 'q', s.n);
+  card.appendChild(body);
+  sBox.appendChild(card);
+});
+
+function updateProgress(){
+  const total = boxes.length;
+  const done = boxes.filter(function(c){ return c.checked; }).length;
+  const pct = total ? Math.round(done*100/total) : 0;
+  document.getElementById('bar').style.width = pct + '%';
+  document.getElementById('pct').textContent = done + ' / ' + total + ' 项已完成 · ' + pct + '%';
+}
+updateProgress();
+</script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 1 次学习 · 复杂度的本质 · 练习手册</title>
+<style>
+:root{
+  --blue:#185FA5; --blue-d:#0C447C; --blue-l:#E6F1FB;
+  --teal:#0F6E56; --teal-l:#E1F5EE;
+  --amber:#BA7517; --amber-d:#633806; --amber-l:#FAEEDA;
+  --red:#A32D2D; --red-l:#FCEBEB;
+  --line:#E3E6EB; --ink:#1F2328; --ink2:#5A6472; --ink3:#8A93A0;
+  --bg:#F6F7F9; --card:#FFFFFF;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:0 0 80px; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:14px; line-height:1.7;
+}
+.wrap{max-width:940px; margin:0 auto; padding:0 20px}
+
+header.top{background:var(--card); border-bottom:1px solid var(--line); padding:30px 0 0; margin-bottom:24px}
+.h1{font-size:22px; font-weight:600; margin:0 0 6px}
+.sub{color:var(--ink2); font-size:13.5px; margin:0 0 16px}
+.pills{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
+.pill{padding:4px 11px; border-radius:999px; font-size:12px; background:var(--blue-l); color:var(--blue-d); border:1px solid #C9DFF4}
+.pill.a{background:var(--amber-l); color:var(--amber-d); border-color:#F0D6A8}
+.pill.t{background:var(--teal-l); color:var(--teal); border-color:#BEE4D6}
+
+.timerbar{display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:14px 0 16px; border-top:1px solid var(--line)}
+.phases{display:flex; gap:6px}
+.phase{padding:5px 11px; border-radius:8px; font-size:12px; border:1px solid var(--line); background:#fff; color:var(--ink2); cursor:pointer}
+.phase.on{background:var(--blue); border-color:var(--blue); color:#fff}
+.clock{font-size:22px; font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:.5px; min-width:92px}
+.tbtn{padding:6px 14px; border-radius:8px; font-size:13px; border:1px solid var(--line); background:#fff; cursor:pointer}
+.tbtn.primary{background:var(--blue); border-color:var(--blue); color:#fff}
+.tstat{font-size:12px; color:var(--ink3)}
+
+h2.sec{font-size:16px; font-weight:600; margin:32px 0 4px}
+p.secsub{color:var(--ink2); font-size:13px; margin:0 0 14px}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-top:12px}
+.card > h3{margin:0 0 4px; font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px}
+.card > h3 .tag{
+  font-size:11px; font-weight:400; padding:2px 8px; border-radius:999px;
+  background:var(--teal-l); color:var(--teal); border:1px solid #BEE4D6;
+}
+.card > h3 .tag.a{background:var(--amber-l); color:var(--amber-d); border-color:#F0D6A8}
+.hint{font-size:12.5px; color:var(--ink2); margin:0 0 12px}
+
+table{width:100%; border-collapse:collapse; table-layout:fixed}
+th{font-size:11.5px; font-weight:500; color:var(--ink2); text-align:left; padding:6px 8px; background:#F2F4F7; border:1px solid var(--line)}
+th:first-child{border-top-left-radius:8px}
+th:last-child{border-top-right-radius:8px}
+td{border:1px solid var(--line); padding:0; vertical-align:top}
+td textarea{
+  width:100%; border:0; outline:none; resize:none; background:transparent;
+  font-family:inherit; font-size:12.5px; line-height:1.55; color:var(--ink);
+  padding:7px 8px; min-height:38px; display:block;
+}
+td textarea:focus{background:#F7FAFD}
+.rowno{width:30px; text-align:center; font-size:11px; color:var(--ink3); padding-top:9px; background:#FAFBFC}
+
+.ops{display:flex; gap:8px; margin-top:10px}
+.sbtn{padding:5px 12px; border-radius:8px; font-size:12.5px; border:1px solid var(--line); background:#fff; cursor:pointer; color:var(--ink2)}
+.sbtn:hover{border-color:#B7C2CE; color:var(--ink)}
+
+.qa{margin-bottom:14px}
+.qa p{margin:0 0 6px; font-size:13.5px; font-weight:500}
+.qa p b{color:var(--amber); font-weight:600; margin-right:5px}
+.qa textarea{
+  width:100%; border:1px solid var(--line); border-radius:9px; padding:10px 12px;
+  font-family:inherit; font-size:13px; line-height:1.65; color:var(--ink);
+  background:#fff; resize:vertical; min-height:66px; outline:none;
+}
+.qa textarea:focus{border-color:#9CC3E6; background:#FCFDFE}
+
+.gate{
+  background:var(--teal-l); border:1px solid #BEE4D6; border-radius:12px;
+  padding:14px 18px; margin-top:14px; font-size:13px; color:#0B5340;
+}
+.gate strong{font-weight:600; display:block; margin-bottom:4px}
+.gate ul{margin:0; padding-left:18px}
+.gate li{margin-bottom:3px}
+
+.savebar{
+  position:sticky; bottom:0; margin-top:26px; padding:12px 0;
+  background:linear-gradient(to top, var(--bg) 70%, rgba(246,247,249,0));
+  display:flex; align-items:center; gap:12px;
+}
+.savebar span{font-size:12px; color:var(--ink3)}
+footer{margin-top:10px; color:var(--ink3); font-size:12px; text-align:center}
+@media print{ body{background:#fff} .timerbar,.savebar,.ops{display:none} .card{break-inside:avoid} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1 class="h1">第 1 次学习 · 复杂度的本质</h1>
+    <p class="sub">阅读范围：Ch.1 Introduction · Ch.2 The Nature of Complexity　｜　对应能力等级：L1 复杂度认知者</p>
+    <div class="pills">
+      <span class="pill">精读 55 分钟</span>
+      <span class="pill t">练习 50 分钟</span>
+      <span class="pill a">复盘 15 分钟</span>
+      <span class="pill">3 个练习 · 3 个复盘问题</span>
+    </div>
+    <div class="timerbar">
+      <div class="phases">
+        <button class="phase on" data-min="55">精读 55</button>
+        <button class="phase" data-min="50">练习 50</button>
+        <button class="phase" data-min="15">复盘 15</button>
+      </div>
+      <div class="clock" id="clock">55:00</div>
+      <button class="tbtn primary" id="tstart">开始</button>
+      <button class="tbtn" id="treset">重置</button>
+      <div class="tstat" id="tstat">未开始</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2 class="sec">精读阶段：带着这 6 个问题读，别通读</h2>
+  <p class="secsub">本章信息密度高但篇幅短。用问题驱动读，比逐字读快三倍，记忆也牢。</p>
+  <div class="card">
+    <h3>阅读指引 <span class="tag">55 分钟</span></h3>
+    <p class="hint">下面每个问题读完对应段落就回来写一句答案，不要读完两章再补。</p>
+    <table>
+      <tr><th style="width:30px">#</th><th style="width:38%">带着这个问题去读</th><th>我的一句话答案</th></tr>
+      <tbody id="readRows"></tbody>
+    </table>
+  </div>
+
+  <h2 class="sec">练习阶段：三个必须动手的任务</h2>
+  <p class="secsub">全部作用在你自己的一个真实项目上（建议 300 行以上）。允许改坏，重点是记录前后差异。</p>
+
+  <div class="card">
+    <h3>练习 1 · 三症状标注 <span class="tag">约 25 分钟</span></h3>
+    <p class="hint">在你的项目里找「难改的地方」，至少写满 8 行。最后一列是这次的核心训练：判断它是<b>依赖</b>造成的还是<b>晦涩</b>造成的——两者的修法完全不同。</p>
+    <table>
+      <tr>
+        <th style="width:30px">#</th>
+        <th style="width:19%">位置（文件 / 函数）</th>
+        <th style="width:30%">现象（改什么要连带改什么）</th>
+        <th style="width:19%">症状</th>
+        <th style="width:17%">根源</th>
+      </tr>
+      <tbody id="t1"></tbody>
+    </table>
+    <div class="ops">
+      <button class="sbtn" id="add1">增加一行</button>
+      <button class="sbtn" id="count1">共 0 行</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>练习 2 · 复杂度累积图 <span class="tag">约 15 分钟</span></h3>
+    <p class="hint">写下 5 个「当时就这样吧」的小妥协。关键在第二列——把当时的借口如实写出来，你会发现自己反复在用同一套说辞。</p>
+    <table>
+      <tr>
+        <th style="width:30px">#</th>
+        <th style="width:27%">当初的小妥协</th>
+        <th style="width:30%">我当时的借口</th>
+        <th>今天造成的具体代价</th>
+      </tr>
+      <tbody id="t2"></tbody>
+    </table>
+    <div class="ops">
+      <button class="sbtn" id="add2">增加一行</button>
+      <button class="sbtn" id="count2">共 0 行</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>练习 3 · 反面练习：丑 ≠ 复杂 <span class="tag a a">约 10 分钟</span></h3>
+    <p class="hint">找一个「看起来很乱但改起来不难」的文件。这一步是为了防止你把复杂度当成审美问题——那会让你之后 9 次学歪。</p>
+    <table>
+      <tr>
+        <th style="width:30px">#</th>
+        <th style="width:32%">文件 / 代码片段</th>
+        <th>为什么它「丑但不复杂」（提示：有无依赖？有无晦涩？）</th>
+      </tr>
+      <tbody id="t3"></tbody>
+    </table>
+    <div class="ops">
+      <button class="sbtn" id="add3">增加一行</button>
+      <button class="sbtn" id="count3">共 0 行</button>
+    </div>
+  </div>
+
+  <h2 class="sec">复盘阶段：15 分钟，必须写下来</h2>
+  <p class="secsub">写在脑子里等于没写。这三个问题的答案会直接决定第 2 次要不要调整方法。</p>
+  <div class="card">
+    <h3>复盘问题 <span class="tag a">15 分钟</span></h3>
+    <div class="qa">
+      <p><b>Q1</b>我不查资料，能不能把复杂度定义讲给一个非程序员听？讲不清的是哪一句？</p>
+      <textarea id="q1" placeholder="先写下你给朋友解释时用的原话，标出卡住的地方……"></textarea>
+    </div>
+    <div class="qa">
+      <p><b>Q2</b>练习 1 里我标的那些问题，依赖型和晦涩型各占几条？我的短板在哪一侧？</p>
+      <textarea id="q2" placeholder="例如：8 条里有 6 条是晦涩型，说明我最大的问题是信息没写清楚，而不是耦合太多……"></textarea>
+    </div>
+    <div class="qa">
+      <p><b>Q3</b>我最常在哪个症状上栽跟头？下次遇到它，我的第一反应应该改成什么？</p>
+      <textarea id="q3" placeholder="例如：我发现我总栽在「未知的未知」，因为从不写注释，第一反应应该是先找调用点……"></textarea>
+    </div>
+  </div>
+
+  <div class="gate">
+    <strong>进入第 2 次的门槛（自查三项）</strong>
+    <ul>
+      <li>能用一句话说清：复杂度 = 依赖 + 晦涩，而不是代码多或写得丑</li>
+      <li>练习 1 至少写满 8 行，且每一行都能说清属于哪种症状、哪个根源</li>
+      <li>能举出一个「丑但不复杂」的具体例子——说明你没有被审美带跑</li>
+    </ul>
+  </div>
+
+  <div class="savebar">
+    <button class="sbtn" id="exportBtn">导出笔记为 Markdown</button>
+    <button class="sbtn" id="clearBtn">清空全部</button>
+    <span id="saveMsg">内容自动保存在本机浏览器</span>
+  </div>
+
+  <footer>第 1 次 / 共 10 次　·　下次：战略编程——把设计当投资（Ch.3）</footer>
+</div>
+
+<script>
+const READ_Q = [
+  "作者怎么定义「复杂度」？他为什么不把它等同于代码行数或文件数？",
+  "「依赖」和「晦涩」各自会造成哪些症状？为什么认知负荷特别容易被两面夹击？",
+  "三大症状里，作者为什么认为「未知的未知」最糟糕？",
+  "复杂度为什么无法靠一次大重构根除？他用的「增量」论证是什么？",
+  "作者说复杂度在「开发者觉得代码没问题」时就开始积累了——他举了什么例子（如类 itis、浅模块）？",
+  "本章结尾给出了哪些「复杂度是无辜的」的提醒（例如：复杂不是某一个人的错）？"
+];
+
+const KEY = 'aposd-s1-v1';
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ state = {}; }
+
+function persist(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+
+function autoGrow(ta){ ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+
+function mkCell(row, key, ph, cls){
+  const td = document.createElement('td');
+  if(cls) td.className = cls;
+  const ta = document.createElement('textarea');
+  ta.placeholder = ph || '';
+  ta.value = state[key] || '';
+  ta.dataset.key = key;
+  ta.addEventListener('input', function(){ state[key] = ta.value; persist(); autoGrow(ta); });
+  td.appendChild(ta);
+  row.appendChild(td);
+  requestAnimationFrame(function(){ autoGrow(ta); });
+  return ta;
+}
+
+function mkNoCell(row, n){
+  const td = document.createElement('td');
+  td.className = 'rowno';
+  td.textContent = String(n);
+  row.appendChild(td);
+}
+
+READ_Q.forEach(function(q, i){
+  const tr = document.createElement('tr');
+  mkNoCell(tr, i+1);
+  const qd = document.createElement('td');
+  qd.style.padding = '7px 10px';
+  qd.style.fontSize = '12.5px';
+  qd.style.color = 'var(--ink2)';
+  qd.style.lineHeight = '1.6';
+  qd.textContent = q;
+  tr.appendChild(qd);
+  mkCell(tr, 'read-' + i, '一句话答案……');
+  document.getElementById('readRows').appendChild(tr);
+});
+
+function mkTable(tbodyId, countId, addId, prefix, cols, max, phs){
+  const tbody = document.getElementById(tbodyId);
+  const counter = document.getElementById(countId);
+  function render(){
+    tbody.innerHTML = '';
+    for (let i = 0; i < cols; i++){
+      const tr = document.createElement('tr');
+      mkNoCell(tr, i+1);
+      for (let c = 0; c < max; c++){
+        mkCell(tr, prefix + '-' + i + '-' + c, (phs && phs[c]) ? phs[c] : (i === 0 ? '示例……' : ''));
+      }
+      tbody.appendChild(tr);
+    }
+    counter.textContent = '共 ' + cols + ' 行';
+  }
+  render();
+  document.getElementById(addId).addEventListener('click', function(){
+    cols++;
+    render();
+    const last = tbody.lastElementChild;
+    const ta = last.querySelector('textarea');
+    if (ta) ta.focus();
+  });
+  return { get rows(){ return cols; } };
+}
+
+mkTable('t1','count1','add1','p1', 8, 4, ['如：order.js / calcPrice','例如：改税率要同时改 3 个地方','变更放大 / 认知负荷 / 未知的未知','依赖 / 晦涩']);
+mkTable('t2','count2','add2','p2', 5, 3, ['例如：先把这个常量写死','例如：先用着，以后再抽出来','例如：现在多了一处必须同步修改']);
+mkTable('t3','count3','add3','p3', 2, 2, ['例如：utils/legacy_format.js','例如：又长又乱，但只被一处调用，规则全在同一个函数里']);
+
+document.getElementById('q1').value = state['q1'] || '';
+document.getElementById('q2').value = state['q2'] || '';
+document.getElementById('q3').value = state['q3'] || '';
+['q1','q2','q3'].forEach(function(id){
+  const ta = document.getElementById(id);
+  ta.addEventListener('input', function(){ state[id] = ta.value; persist(); });
+});
+
+const clockEl = document.getElementById('clock');
+const statEl = document.getElementById('tstat');
+let total = 55 * 60, left = total, timer = null, running = false;
+
+function paint(){
+  const m = Math.floor(left / 60), s = left % 60;
+  clockEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+document.querySelectorAll('.phase').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.phase').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    stop();
+    total = parseInt(b.dataset.min, 10) * 60;
+    left = total; paint();
+    statEl.textContent = '已切换到「' + b.textContent.trim() + '」阶段';
+  });
+});
+function stop(){ if (timer) clearInterval(timer); timer = null; running = false; document.getElementById('tstart').textContent = '开始'; }
+document.getElementById('tstart').addEventListener('click', function(){
+  if (running){ stop(); statEl.textContent = '已暂停'; return; }
+  running = true;
+  document.getElementById('tstart').textContent = '暂停';
+  statEl.textContent = '计时中';
+  timer = setInterval(function(){
+    left--;
+    if (left <= 0){ left = 0; paint(); stop(); statEl.textContent = '本阶段时间到'; return; }
+    paint();
+  }, 1000);
+});
+document.getElementById('treset').addEventListener('click', function(){ stop(); left = total; paint(); statEl.textContent = '已重置'; });
+paint();
+
+function mdTables(tbodyId, headers, rows){
+  let out = '| ' + headers.join(' | ') + ' |\n|' + headers.map(function(){ return '---'; }).join('|') + '|\n';
+  const trs = document.querySelectorAll('#' + tbodyId + ' tr');
+  trs.forEach(function(tr){
+    const cells = [];
+    tr.querySelectorAll('textarea').forEach(function(ta){ cells.push((ta.value || '').replace(/\n/g, ' ')); });
+    out += '| ' + (rows ? '' : '') + cells.join(' | ') + ' |\n';
+  });
+  return out;
+}
+
+document.getElementById('exportBtn').addEventListener('click', function(){
+  let md = '# 《软件设计哲学》第 1 次学习笔记 · 复杂度的本质\n\n';
+  md += '日期：' + new Date().toLocaleDateString('zh-CN') + '\n\n';
+  md += '## 精读：6 个问题\n\n';
+  document.querySelectorAll('#readRows tr').forEach(function(tr, i){
+    const ta = tr.querySelector('textarea');
+    md += (i+1) + '. ' + READ_Q[i] + '\n   - ' + ((ta.value || '（未填）').replace(/\n/g,' ')) + '\n\n';
+  });
+  md += '## 练习 1 · 三症状标注\n\n' + mdTables('t1', ['位置','现象','症状','根源'], false) + '\n';
+  md += '## 练习 2 · 复杂度累积图\n\n' + mdTables('t2', ['小妥协','当时的借口','今天造成的代价'], false) + '\n';
+  md += '## 练习 3 · 丑 ≠ 复杂\n\n' + mdTables('t3', ['文件/片段','为什么丑但不复杂'], false) + '\n';
+  md += '## 复盘\n\n';
+  md += '**Q1 能否讲清复杂度定义？卡在哪？**\n\n' + (state['q1'] || '（未填）') + '\n\n';
+  md += '**Q2 依赖型 vs 晦涩型各几条？短板在哪？**\n\n' + (state['q2'] || '（未填）') + '\n\n';
+  md += '**Q3 最常栽在哪个症状？下次第一反应改什么？**\n\n' + (state['q3'] || '（未填）') + '\n\n';
+  md += '---\n\n门槛自查：能讲清定义 / 练习 1 写满 8 行 / 能举出「丑但不复杂」的例子\n';
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '软件设计哲学-第1次-复杂度的本质.md';
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 3000);
+  document.getElementById('saveMsg').textContent = '已导出 Markdown 文件';
+});
+
+document.getElementById('clearBtn').addEventListener('click', function(){
+  if (!confirm('确定清空本次的全部填写内容？此操作不可撤销。')) return;
+  state = {};
+  persist();
+  location.reload();
+});
+</script>
+</body>
+</html>
