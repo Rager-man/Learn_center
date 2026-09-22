@@ -26,3 +26,6 @@ AI_agent/.zcode/
 
 # 本地工具配置目录（根目录与 TypeScript 内）
 TypeScript/.zcode/
+
+# 助手工作目录（会话记忆、日志等本地数据，不入库）
+.workbuddy/
